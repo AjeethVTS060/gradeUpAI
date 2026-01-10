@@ -1,0 +1,38 @@
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.card-3d {
+  transform-style: preserve-3d;
+  transition: transform 0.5s;
+}
+
+.card-3d-inner {
+  transform: rotateY(0deg);
+  transition: transform 0.5s;
+  transform-style: preserve-3d;
+}
+
+.card-3d:hover .card-3d-inner {
+  transform: rotateY(5deg);
+}
+
+.card-3d-active {
+  transform: scale(1.05);
+}
+
+.card-3d-active .card-3d-inner {
+  box-shadow: 0 0 30px rgba(192, 132, 252, 0.5);
+  border-color: rgba(192, 132, 252, 0.8) !important;
+}
+
+
+.card-3d-completed .card-3d-inner {
+  opacity: 0.6;
+  
+}
+
+.card-3d-completed:hover .card-3d-inner {
+    opacity: 0.8;
+    transform: rotateY(0deg);
+}
