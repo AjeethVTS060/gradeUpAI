@@ -12,7 +12,7 @@ import CourseLessonsPage from "./pages/course-lessons-page";
 import ProgressPage from "./pages/progress-page";
 import AITutorModern from "./pages/ai-tutor-modern";
 import VoiceStudyCompanion from "./pages/voice-study-companion";
-import ExamPage from "./pages/exam-page";
+import QuizPage from "./pages/quiz-page";
 import HomeworkPage from "./pages/homework-page";
 import TeacherHomeworkPage from "./pages/teacher-homework-page";
 import TeacherPDFUpload from "./pages/teacher-pdf-upload";
@@ -31,7 +31,7 @@ import BookGallery from "./components/BookGallery";
 import SeminarToolPage from "./pages/seminar-tool-page";
 import DebateToolPage from "./pages/debate-tool-page";
 import { ThemeProvider } from "./hooks/use-theme";
-import QuizPage from "./pages/studio/quiz-page";
+import StudioQuizPage from "./pages/studio/quiz-page";
 import QuizBankPage from "./pages/studio/quiz-bank-page";
 import TestPrepPage from "./pages/studio/test-prep-page";
 import QAPage from "./pages/studio/qa-page";
@@ -46,7 +46,7 @@ function Router() {
       <ProtectedRoute path="/progress" component={() => <ProgressPage />} />
       <ProtectedRoute path="/ai-tutor" component={() => <AITutorModern />} />
       <ProtectedRoute path="/voice-study" component={() => <VoiceStudyCompanion />} />
-      <ProtectedRoute path="/exams" component={() => <ExamPage />} />
+      <ProtectedRoute path="/quiz" component={() => <QuizPage />} />
       <ProtectedRoute path="/homework" component={() => <HomeworkPage />} />
       <ProtectedRoute path="/teacher/homework" component={() => <TeacherHomeworkPage />} />
       <ProtectedRoute path="/teacher/pdf-upload" component={() => <TeacherPDFUpload />} />
@@ -65,7 +65,7 @@ function Router() {
       <ProtectedRoute path="/seminar-tool" component={() => <SeminarToolPage />} />
       <ProtectedRoute path="/debate-tool" component={() => <DebateToolPage />} />
 
-      <ProtectedRoute path="/studio/quiz" component={() => <QuizPage />} />
+      <ProtectedRoute path="/studio/quiz" component={() => <StudioQuizPage />} />
       <ProtectedRoute path="/studio/quiz-bank" component={() => <QuizBankPage />} />
       <ProtectedRoute path="/studio/test-prep" component={() => <TestPrepPage />} />
       <ProtectedRoute path="/studio/qa" component={() => <QAPage />} />

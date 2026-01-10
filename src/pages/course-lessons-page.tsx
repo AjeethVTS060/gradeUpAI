@@ -244,14 +244,14 @@ export default function CourseLessonsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navigation currentRole={user?.role || "student"} onRoleChange={() => {}} />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
           <Button 
             variant="ghost" 
-            className="mb-4"
+            className="mb-4 dark:text-gray-300 dark:hover:bg-gray-800"
             onClick={() => setLocation("/courses")}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -260,16 +260,16 @@ export default function CourseLessonsPage() {
           
           {course && (
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{course.title}</h1>
-              <p className="text-gray-600 mb-4">{course.description}</p>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{course.title}</h1>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">{course.description}</p>
               
               <div className="flex items-center space-x-4 mb-6">
-                <Badge variant="outline">Grade {course.grade}</Badge>
-                <div className="flex items-center text-sm text-gray-600">
+                <Badge variant="outline" className="dark:border-gray-600 dark:text-gray-400">Grade {course.grade}</Badge>
+                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                   <Trophy className="h-4 w-4 mr-1" />
                   {Math.round(completionRate)}% Complete
                 </div>
-                <div className="flex items-center text-sm text-gray-600">
+                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                   <Clock className="h-4 w-4 mr-1" />
                   {lessons.length} Lessons
                 </div>
@@ -283,17 +283,17 @@ export default function CourseLessonsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Lessons List */}
           <div className="lg:col-span-1">
-            <Card>
+            <Card className="bg-white dark:bg-gray-800">
               <CardHeader>
-                <CardTitle>Course Lessons</CardTitle>
+                <CardTitle className="dark:text-white">Course Lessons</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="divide-y">
+                <div className="divide-y dark:divide-gray-700">
                   {isLoading ? (
                     <div className="p-4">
                       <div className="animate-pulse space-y-4">
                         {[1, 2, 3, 4, 5].map((i) => (
-                          <div key={i} className="h-16 bg-gray-200 rounded"></div>
+                          <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
                         ))}
                       </div>
                     </div>
@@ -308,14 +308,14 @@ export default function CourseLessonsPage() {
                       return (
                         <div
                           key={lesson.id}
-                          className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
-                            isSelected ? 'bg-blue-50 border-r-2 border-blue-500' : ''
+                          className={`p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
+                            isSelected ? 'bg-blue-50 dark:bg-blue-900/20 border-r-2 border-blue-500' : ''
                           }`}
                           onClick={() => startLesson(lesson)}
                         >
                           <div className="flex items-center space-x-3">
                             <div className={`p-2 rounded-lg ${
-                              isCompleted ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'
+                              isCompleted ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
                             }`}>
                               {isCompleted ? (
                                 <CheckCircle className="h-4 w-4" />
@@ -324,9 +324,9 @@ export default function CourseLessonsPage() {
                               )}
                             </div>
                             <div className="flex-1">
-                              <h4 className="font-medium text-sm">{lesson.title}</h4>
-                              <div className="flex items-center space-x-2 text-xs text-gray-500 mt-1">
-                                <Badge variant="outline" className="text-xs">
+                              <h4 className="font-medium text-sm dark:text-white">{lesson.title}</h4>
+                              <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                <Badge variant="outline" className="text-xs dark:border-gray-600 dark:text-gray-400">
                                   {lessonType}
                                 </Badge>
                                 <span>{lesson.duration} min</span>
@@ -336,7 +336,7 @@ export default function CourseLessonsPage() {
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-600"
+                                className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-900/30 dark:hover:text-blue-400"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   startLesson(lesson);
@@ -350,7 +350,7 @@ export default function CourseLessonsPage() {
                       );
                     })
                   ) : (
-                    <div className="p-8 text-center text-gray-500">
+                    <div className="p-8 text-center text-gray-500 dark:text-gray-400">
                       <BookOpen className="h-8 w-8 mx-auto mb-2 text-gray-400" />
                       <p>No lessons available yet</p>
                     </div>
@@ -363,17 +363,17 @@ export default function CourseLessonsPage() {
           {/* Lesson Content */}
           <div className="lg:col-span-2 lesson-content">
             {selectedLesson ? (
-              <Card>
+              <Card className="bg-white dark:bg-gray-800">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle>{selectedLesson.title}</CardTitle>
+                      <CardTitle className="dark:text-white">{selectedLesson.title}</CardTitle>
                       <div className="flex items-center space-x-2 mt-2">
-                        <Badge variant="outline">
+                        <Badge variant="outline" className="dark:border-gray-600 dark:text-gray-400">
                           {selectedLesson.videoUrl ? 'Video' : 
                            selectedLesson.title.toLowerCase().includes('quiz') ? 'Quiz' : 'Reading'}
                         </Badge>
-                        <span className="text-sm text-gray-500">{selectedLesson.duration} min</span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">{selectedLesson.duration} min</span>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -382,7 +382,7 @@ export default function CourseLessonsPage() {
                         size="sm"
                         variant="outline"
                         onClick={isSpeaking ? stopSpeech : speakLessonContent}
-                        className="flex items-center space-x-2"
+                        className="flex items-center space-x-2 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
                       >
                         {isSpeaking ? (
                           <>
@@ -401,7 +401,7 @@ export default function CourseLessonsPage() {
                         size="sm"
                         variant="ghost"
                         onClick={() => setShowSpeechSettings(!showSpeechSettings)}
-                        className="flex items-center space-x-1"
+                        className="flex items-center space-x-1 dark:text-gray-300 dark:hover:bg-gray-700"
                       >
                         <Settings className="h-4 w-4" />
                       </Button>
@@ -420,17 +420,17 @@ export default function CourseLessonsPage() {
                 <CardContent>
                   {/* Speech Settings Panel */}
                   {showSpeechSettings && (
-                    <Card className="mb-4 bg-gray-50">
+                    <Card className="mb-4 bg-gray-50 dark:bg-gray-700/50">
                       <CardContent className="p-4">
-                        <h4 className="font-semibold mb-3">Voice Settings</h4>
+                        <h4 className="font-semibold mb-3 dark:text-white">Voice Settings</h4>
                         <div className="space-y-4">
                           <div>
-                            <label className="text-sm font-medium mb-2 block">Voice</label>
+                            <label className="text-sm font-medium mb-2 block dark:text-gray-300">Voice</label>
                             <Select value={selectedVoice} onValueChange={setSelectedVoice}>
-                              <SelectTrigger className="w-full">
+                              <SelectTrigger className="w-full dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600">
                                 <SelectValue placeholder="Select a voice" />
                               </SelectTrigger>
-                              <SelectContent>
+                              <SelectContent className="dark:bg-gray-700 dark:text-gray-300">
                                 {availableVoices.map((voice) => (
                                   <SelectItem key={voice.name} value={voice.name}>
                                     {voice.name} ({voice.lang})
@@ -441,7 +441,7 @@ export default function CourseLessonsPage() {
                           </div>
                           
                           <div>
-                            <label className="text-sm font-medium mb-2 block">
+                            <label className="text-sm font-medium mb-2 block dark:text-gray-300">
                               Speed: {speechRate.toFixed(1)}x
                             </label>
                             <Slider
@@ -460,11 +460,12 @@ export default function CourseLessonsPage() {
                               variant="outline"
                               onClick={() => speakText("This is a test of the selected voice and speed settings.")}
                               disabled={isSpeaking}
+                              className="dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
                             >
                               Test Voice
                             </Button>
                             {isSpeaking && (
-                              <Button size="sm" variant="outline" onClick={stopSpeech}>
+                              <Button size="sm" variant="outline" onClick={stopSpeech} className="dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600">
                                 Stop Test
                               </Button>
                             )}
@@ -474,7 +475,7 @@ export default function CourseLessonsPage() {
                     </Card>
                   )}
 
-                  <div className="prose max-w-none">
+                  <div className="prose dark:prose-invert max-w-none">
                     {selectedLesson.videoUrl && (
                       <div className="bg-black rounded-lg overflow-hidden mb-6 relative">
                         <div className="aspect-video bg-gray-900 flex items-center justify-center relative">
@@ -550,7 +551,7 @@ export default function CourseLessonsPage() {
                       </div>
                     )}
                     
-                    <div className="text-gray-700 leading-relaxed">
+                    <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
                       {selectedLesson.content || (
                         <div className="space-y-4">
                           <h3 className="text-lg font-semibold">Lesson Overview</h3>
@@ -578,11 +579,11 @@ export default function CourseLessonsPage() {
                 </CardContent>
               </Card>
             ) : (
-              <Card className="h-96 flex items-center justify-center">
+              <Card className="h-96 flex items-center justify-center bg-white dark:bg-gray-800">
                 <CardContent className="text-center">
                   <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Select a Lesson</h3>
-                  <p className="text-gray-600">Choose a lesson from the left to start learning</p>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Select a Lesson</h3>
+                  <p className="text-gray-600 dark:text-gray-400">Choose a lesson from the left to start learning</p>
                 </CardContent>
               </Card>
             )}

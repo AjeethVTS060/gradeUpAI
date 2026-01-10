@@ -57,7 +57,7 @@ function Navigation({ currentRole, onRoleChange }: NavigationProps) {
     { href: "/dashboard", label: "Dashboard", icon: Home },
     { href: "/bookExpanded", label: "BookContents", icon: BookOpen },
     { href: "/ai-tutor", label: "AI Tutor", icon: MessageSquare },
-    // { href: "/exams", label: "Practice Exams", icon: FileText },
+    // { href: "/quiz", label: "Practice Exams", icon: FileText },
     // { href: "/homework", label: "Homework", icon: ClipboardList },
     // { href: "/analytics", label: "Analytics", icon: BarChart3 },
     { href: "/seminar-tool", label: "Seminar Tool", icon: GraduationCap },

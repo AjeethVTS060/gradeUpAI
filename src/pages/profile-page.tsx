@@ -85,14 +85,14 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navigation currentRole={currentRole} onRoleChange={() => {}} />
       
       <div className="container mx-auto px-4 py-8">
         {/* Back to Dashboard */}
         <div className="mb-4">
           <Link href="/">
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button variant="outline" className="flex items-center gap-2 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-gray-700">
               <ArrowLeft className="h-4 w-4" />
               Back to Dashboard
             </Button>
@@ -102,8 +102,8 @@ export default function ProfilePage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
-            <p className="text-gray-600 mt-2">Manage your personal information and preferences</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Profile</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">Manage your personal information and preferences</p>
           </div>
           
           {!isEditing && (
@@ -117,13 +117,13 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Profile Summary Card */}
           <div className="lg:col-span-1">
-            <Card>
+            <Card className="bg-white dark:bg-gray-800">
               <CardContent className="p-6">
                 <div className="flex flex-col items-center text-center space-y-4">
                   <div className="relative">
                     <Avatar className="h-24 w-24">
                       <AvatarImage src={user?.profileImage || undefined} />
-                      <AvatarFallback className="text-lg">
+                      <AvatarFallback className="text-lg dark:bg-gray-700 dark:text-gray-300">
                         {user?.firstName?.[0]}{user?.lastName?.[0]}
                       </AvatarFallback>
                     </Avatar>
@@ -131,7 +131,7 @@ export default function ProfilePage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="absolute -bottom-2 -right-2 rounded-full h-8 w-8 p-0"
+                        className="absolute -bottom-2 -right-2 rounded-full h-8 w-8 p-0 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
                       >
                         <Camera className="h-4 w-4" />
                       </Button>
@@ -139,17 +139,17 @@ export default function ProfilePage() {
                   </div>
                   
                   <div>
-                    <h2 className="text-xl font-semibold">
+                    <h2 className="text-xl font-semibold dark:text-white">
                       {user?.firstName} {user?.lastName}
                     </h2>
-                    <p className="text-gray-600">@{user?.username}</p>
+                    <p className="text-gray-600 dark:text-gray-400">@{user?.username}</p>
                   </div>
                   
                   <Badge variant={user?.role === "teacher" ? "default" : "secondary"}>
                     {user?.role === "teacher" ? "Teacher" : "Student"}
                   </Badge>
                   
-                  <div className="w-full space-y-3 text-left">
+                  <div className="w-full space-y-3 text-left dark:text-gray-300">
                     <div className="flex items-center gap-3 text-sm">
                       <Mail className="h-4 w-4 text-gray-400" />
                       <span>{user?.email}</span>
@@ -181,9 +181,9 @@ export default function ProfilePage() {
 
           {/* Profile Details Card */}
           <div className="lg:col-span-2">
-            <Card>
+            <Card className="bg-white dark:bg-gray-800">
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
+                <CardTitle className="flex items-center justify-between dark:text-white">
                   Personal Information
                   {isEditing && (
                     <div className="flex items-center gap-2">
@@ -191,7 +191,7 @@ export default function ProfilePage() {
                         variant="outline"
                         size="sm"
                         onClick={handleCancel}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
                       >
                         <X className="h-4 w-4" />
                         Cancel
@@ -218,9 +218,9 @@ export default function ProfilePage() {
                         name="firstName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>First Name</FormLabel>
+                            <FormLabel className="dark:text-gray-300">First Name</FormLabel>
                             <FormControl>
-                              <Input {...field} disabled={!isEditing} />
+                              <Input {...field} disabled={!isEditing} className="dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -232,9 +232,9 @@ export default function ProfilePage() {
                         name="lastName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Last Name</FormLabel>
+                            <FormLabel className="dark:text-gray-300">Last Name</FormLabel>
                             <FormControl>
-                              <Input {...field} disabled={!isEditing} />
+                              <Input {...field} disabled={!isEditing} className="dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -247,9 +247,9 @@ export default function ProfilePage() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email Address</FormLabel>
+                          <FormLabel className="dark:text-gray-300">Email Address</FormLabel>
                           <FormControl>
-                            <Input type="email" {...field} disabled={!isEditing} />
+                            <Input type="email" {...field} disabled={!isEditing} className="dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -261,9 +261,9 @@ export default function ProfilePage() {
                       name="phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Phone Number</FormLabel>
+                          <FormLabel className="dark:text-gray-300">Phone Number</FormLabel>
                           <FormControl>
-                            <Input {...field} disabled={!isEditing} />
+                            <Input {...field} disabled={!isEditing} className="dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -275,9 +275,9 @@ export default function ProfilePage() {
                       name="address"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Address</FormLabel>
+                          <FormLabel className="dark:text-gray-300">Address</FormLabel>
                           <FormControl>
-                            <Textarea {...field} disabled={!isEditing} />
+                            <Textarea {...field} disabled={!isEditing} className="dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -289,13 +289,14 @@ export default function ProfilePage() {
                       name="bio"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Bio</FormLabel>
+                          <FormLabel className="dark:text-gray-300">Bio</FormLabel>
                           <FormControl>
                             <Textarea 
                               {...field} 
                               disabled={!isEditing}
                               placeholder="Tell us about yourself..."
                               rows={4}
+                              className="dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
                             />
                           </FormControl>
                           <FormMessage />

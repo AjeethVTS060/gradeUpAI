@@ -159,63 +159,63 @@ export default function StudentDashboard({ onStartQuiz }: StudentDashboardProps)
 
       {/* Quick Stats - Responsive Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-        <Card className="card-hover">
+        <Card className="card-hover bg-white dark:bg-gray-800">
           <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between mb-2 sm:mb-4">
-              <div className="bg-blue-100 p-2 sm:p-3 rounded-lg">
+              <div className="bg-blue-100 dark:bg-blue-900/30 p-2 sm:p-3 rounded-lg">
                 <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-primary" />
               </div>
-              <span className="text-[10px] sm:text-xs text-gray-500">This Week</span>
+              <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">This Week</span>
             </div>
-            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
               {statsLoading ? "..." : stats?.lessonsCompleted || 0}
             </h3>
-            <p className="text-xs sm:text-sm text-gray-600">Lessons Done</p>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Lessons Done</p>
           </CardContent>
         </Card>
 
-        <Card className="card-hover">
+        <Card className="card-hover bg-white dark:bg-gray-800">
           <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between mb-2 sm:mb-4">
-              <div className="bg-green-100 p-2 sm:p-3 rounded-lg">
+              <div className="bg-green-100 dark:bg-green-900/30 p-2 sm:p-3 rounded-lg">
                 <Trophy className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-green-600" />
               </div>
-              <span className="text-[10px] sm:text-xs text-gray-500">Overall</span>
+              <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Overall</span>
             </div>
-            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
               {statsLoading ? "..." : `${stats?.averageScore || 0}%`}
             </h3>
-            <p className="text-xs sm:text-sm text-gray-600">Avg Score</p>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Avg Score</p>
           </CardContent>
         </Card>
 
-        <Card className="card-hover">
+        <Card className="card-hover bg-white dark:bg-gray-800">
           <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between mb-2 sm:mb-4">
-              <div className="bg-purple-100 p-2 sm:p-3 rounded-lg">
+              <div className="bg-purple-100 dark:bg-purple-900/30 p-2 sm:p-3 rounded-lg">
                 <Clock className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-purple-600" />
               </div>
-              <span className="text-[10px] sm:text-xs text-gray-500">This Week</span>
+              <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">This Week</span>
             </div>
-            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
               {statsLoading ? "..." : `${stats?.totalTimeSpent || 0}h`}
             </h3>
-            <p className="text-xs sm:text-sm text-gray-600">Study Time</p>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Study Time</p>
           </CardContent>
         </Card>
 
-        <Card className="card-hover">
+        <Card className="card-hover bg-white dark:bg-gray-800">
           <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between mb-2 sm:mb-4">
-              <div className="bg-yellow-100 p-2 sm:p-3 rounded-lg">
+              <div className="bg-yellow-100 dark:bg-yellow-900/30 p-2 sm:p-3 rounded-lg">
                 <Award className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-yellow-600" />
               </div>
-              <span className="text-[10px] sm:text-xs text-gray-500">Earned</span>
+              <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Earned</span>
             </div>
-            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
               {statsLoading ? "..." : stats?.badgesEarned || 0}
             </h3>
-            <p className="text-xs sm:text-sm text-gray-600">Badges</p>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Badges</p>
           </CardContent>
         </Card>
       </div>
@@ -304,7 +304,7 @@ export default function StudentDashboard({ onStartQuiz }: StudentDashboardProps)
                     if (test.urgency === "high") {
                       window.location.href = "/courses";
                     } else {
-                      window.location.href = "/exams";
+                      window.location.href = "/studio/quiz?questions=15&time=20";
                     }
                   }}
                 >
@@ -314,7 +314,7 @@ export default function StudentDashboard({ onStartQuiz }: StudentDashboardProps)
             ))}
             
             <div className="text-center py-2 sm:py-4">
-              <Link href="/exams">
+              <Link href="/studio/quiz?questions=15&time=20">
                 <Button variant="ghost" size="sm" className="text-xs sm:text-sm">View All Tests</Button>
               </Link>
             </div>
@@ -323,11 +323,11 @@ export default function StudentDashboard({ onStartQuiz }: StudentDashboardProps)
       </div>
 
       {/* Recent Achievements */}
-      <Card>
+      <Card className="bg-white dark:bg-gray-800">
         <CardHeader className="pb-2 sm:pb-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base sm:text-lg">Recent Achievements</CardTitle>
-            <Button variant="ghost" size="sm" className="text-xs sm:text-sm">View All</Button>
+            <CardTitle className="text-base sm:text-lg dark:text-white">Recent Achievements</CardTitle>
+            <Button variant="ghost" size="sm" className="text-xs sm:text-sm dark:text-gray-300 dark:hover:bg-gray-700">View All</Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -335,14 +335,14 @@ export default function StudentDashboard({ onStartQuiz }: StudentDashboardProps)
             {mockAchievements.map((achievement) => (
               <div 
                 key={achievement.id}
-                className={`text-center p-3 sm:p-4 bg-gradient-to-br ${achievement.color} rounded-lg card-hover`}
+                className={`text-center p-3 sm:p-4 bg-gradient-to-br ${achievement.color} dark:from-gray-700 dark:to-gray-800 rounded-lg card-hover`}
                 data-testid={`achievement-${achievement.id}`}
               >
                 <div className={`${achievement.iconColor} text-white p-2 sm:p-3 rounded-full w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 flex items-center justify-center`}>
                   <achievement.icon className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
-                <h3 className="font-medium text-gray-900 text-xs sm:text-sm">{achievement.title}</h3>
-                <p className="text-[10px] sm:text-xs text-gray-600 mt-1">{achievement.description}</p>
+                <h3 className="font-medium text-gray-900 dark:text-white text-xs sm:text-sm">{achievement.title}</h3>
+                <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-1">{achievement.description}</p>
               </div>
             ))}
           </div>

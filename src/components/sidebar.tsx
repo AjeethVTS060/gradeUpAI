@@ -87,10 +87,10 @@ export default function Sidebar({ currentRole }: SidebarProps) {
     {
       icon: Home,
       label: "Exam Windows",
-      href: "/exams",
+      href: "/studio/quiz?questions=20&time=30",
       children: [
-        { label: "Prep", href: "/exams/prep" },
-        { label: "Main Exam", href: "/exams" },
+        { label: "Prep", href: "/studio/quiz?questions=10&time=15" },
+        { label: "Main Exam", href: "/studio/quiz?questions=20&time=30" },
       ],
     },
   ];

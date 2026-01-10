@@ -116,72 +116,72 @@ export default function TeacherDashboard() {
 
       {/* Teacher Quick Stats - Responsive Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-        <Card className="card-hover">
+        <Card className="card-hover bg-white dark:bg-gray-800">
           <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between mb-2 sm:mb-4">
-              <div className="bg-blue-100 p-2 sm:p-3 rounded-lg">
+              <div className="bg-blue-100 dark:bg-blue-900/30 p-2 sm:p-3 rounded-lg">
                 <Users className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-primary" />
               </div>
-              <span className="text-[10px] sm:text-xs text-gray-500">Active</span>
+              <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Active</span>
             </div>
-            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
               {statsLoading ? "..." : stats?.totalStudents || 0}
             </h3>
-            <p className="text-xs sm:text-sm text-gray-600">Students</p>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Students</p>
           </CardContent>
         </Card>
 
-        <Card className="card-hover">
+        <Card className="card-hover bg-white dark:bg-gray-800">
           <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between mb-2 sm:mb-4">
-              <div className="bg-green-100 p-2 sm:p-3 rounded-lg">
+              <div className="bg-green-100 dark:bg-green-900/30 p-2 sm:p-3 rounded-lg">
                 <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-green-600" />
               </div>
-              <span className="text-[10px] sm:text-xs text-gray-500">Created</span>
+              <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Created</span>
             </div>
-            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
               {statsLoading ? "..." : stats?.coursesCreated || 0}
             </h3>
-            <p className="text-xs sm:text-sm text-gray-600">Courses</p>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Courses</p>
           </CardContent>
         </Card>
 
-        <Card className="card-hover">
+        <Card className="card-hover bg-white dark:bg-gray-800">
           <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between mb-2 sm:mb-4">
-              <div className="bg-purple-100 p-2 sm:p-3 rounded-lg">
+              <div className="bg-purple-100 dark:bg-purple-900/30 p-2 sm:p-3 rounded-lg">
                 <ClipboardCheck className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-purple-600" />
               </div>
-              <span className="text-[10px] sm:text-xs text-gray-500">Pending</span>
+              <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Pending</span>
             </div>
-            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
               {statsLoading ? "..." : stats?.pendingAssignments || 0}
             </h3>
-            <p className="text-xs sm:text-sm text-gray-600">To Review</p>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">To Review</p>
           </CardContent>
         </Card>
 
-        <Card className="card-hover">
+        <Card className="card-hover bg-white dark:bg-gray-800">
           <CardContent className="p-3 sm:p-4 lg:p-6">
             <div className="flex items-center justify-between mb-2 sm:mb-4">
-              <div className="bg-orange-100 p-2 sm:p-3 rounded-lg">
+              <div className="bg-orange-100 dark:bg-orange-900/30 p-2 sm:p-3 rounded-lg">
                 <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-orange-600" />
               </div>
-              <span className="text-[10px] sm:text-xs text-gray-500">Avg</span>
+              <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Avg</span>
             </div>
-            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
+            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
               {statsLoading ? "..." : `${stats?.classAverage || 0}%`}
             </h3>
-            <p className="text-xs sm:text-sm text-gray-600">Performance</p>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Performance</p>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Quick Actions */}
-        <Card>
+        <Card className="bg-white dark:bg-gray-800">
           <CardHeader className="pb-2 sm:pb-4">
-            <CardTitle className="text-base sm:text-lg">Quick Actions</CardTitle>
+            <CardTitle className="text-base sm:text-lg dark:text-white">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 sm:space-y-3">
             {quickActions.map((action) => (
@@ -205,42 +205,42 @@ export default function TeacherDashboard() {
 
         {/* Recent Classes */}
         <div className="lg:col-span-2">
-          <Card>
+          <Card className="bg-white dark:bg-gray-800">
             <CardHeader className="pb-2 sm:pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base sm:text-lg">Recent Classes</CardTitle>
-                <Button variant="ghost" size="sm" className="text-xs sm:text-sm">View All</Button>
+                <CardTitle className="text-base sm:text-lg dark:text-white">Recent Classes</CardTitle>
+                <Button variant="ghost" size="sm" className="text-xs sm:text-sm dark:text-gray-300 dark:hover:bg-gray-700">View All</Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-3 sm:space-y-4">
               {mockCourses.map((course) => (
                 <div 
                   key={course.id}
-                  className="flex flex-col sm:flex-row sm:items-center p-3 sm:p-4 bg-gray-50 rounded-lg gap-3"
+                  className="flex flex-col sm:flex-row sm:items-center p-3 sm:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg gap-3"
                 >
                   <div className={`${course.color} text-white p-2.5 sm:p-3 rounded-lg shrink-0 w-fit`}>
                     <course.icon className="h-5 w-5 sm:h-6 sm:w-6" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-gray-900 text-sm sm:text-base truncate">{course.title}</h3>
-                    <p className="text-xs sm:text-sm text-gray-600">{course.grade} - {course.students} students</p>
+                    <h3 className="font-medium text-gray-900 dark:text-white text-sm sm:text-base truncate">{course.title}</h3>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{course.grade} - {course.students} students</p>
                     <div className="flex flex-wrap items-center mt-2 gap-2">
                       <Badge 
                         variant="outline"
                         className={`text-[10px] sm:text-xs ${
                           course.completion > 90 
-                            ? "bg-green-100 text-green-800 border-green-200" 
+                            ? "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700" 
                             : course.completion > 75 
-                            ? "bg-yellow-100 text-yellow-800 border-yellow-200"
-                            : "bg-blue-100 text-blue-800 border-blue-200"
+                            ? "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700"
+                            : "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700"
                         }`}
                       >
                         {course.completion}%
                       </Badge>
-                      <span className="text-[10px] sm:text-xs text-gray-500">{course.lastActivity}</span>
+                      <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">{course.lastActivity}</span>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" className="w-full sm:w-auto text-xs sm:text-sm">
+                  <Button variant="outline" size="sm" className="w-full sm:w-auto text-xs sm:text-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600">
                     Manage
                   </Button>
                 </div>
@@ -251,22 +251,22 @@ export default function TeacherDashboard() {
       </div>
 
       {/* Student Performance Overview */}
-      <Card>
+      <Card className="bg-white dark:bg-gray-800">
         <CardHeader className="pb-2 sm:pb-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <CardTitle className="text-base sm:text-lg">Performance Overview</CardTitle>
+            <CardTitle className="text-base sm:text-lg dark:text-white">Performance Overview</CardTitle>
             <div className="flex flex-col sm:flex-row gap-2">
               <Select defaultValue="7days">
-                <SelectTrigger className="w-full sm:w-32 text-xs sm:text-sm h-8 sm:h-9">
+                <SelectTrigger className="w-full sm:w-32 text-xs sm:text-sm h-8 sm:h-9 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="dark:bg-gray-700 dark:text-gray-300">
                   <SelectItem value="7days">7 days</SelectItem>
                   <SelectItem value="30days">30 days</SelectItem>
                   <SelectItem value="3months">3 months</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="sm" className="text-xs sm:text-sm h-8 sm:h-9">
+              <Button variant="outline" size="sm" className="text-xs sm:text-sm h-8 sm:h-9 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600">
                 Export
               </Button>
             </div>
@@ -274,10 +274,10 @@ export default function TeacherDashboard() {
         </CardHeader>
         <CardContent>
           {/* Performance Chart Placeholder */}
-          <div className="bg-gray-50 rounded-lg p-4 sm:p-6 lg:p-8 text-center">
-            <BarChart3 className="h-10 w-10 sm:h-12 sm:w-12 lg:h-16 lg:w-16 text-gray-400 mx-auto mb-3 sm:mb-4" />
-            <p className="text-gray-600 font-medium text-sm sm:text-base">Performance analytics</p>
-            <p className="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-2">Chart visualization coming soon</p>
+          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 sm:p-6 lg:p-8 text-center">
+            <BarChart3 className="h-10 w-10 sm:h-12 sm:w-12 lg:h-16 lg:w-16 text-gray-400 dark:text-gray-500 mx-auto mb-3 sm:mb-4" />
+            <p className="text-gray-600 dark:text-gray-300 font-medium text-sm sm:text-base">Performance analytics</p>
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 sm:mt-2">Chart visualization coming soon</p>
           </div>
         </CardContent>
       </Card>
