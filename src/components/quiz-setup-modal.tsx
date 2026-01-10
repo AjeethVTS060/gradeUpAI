@@ -1,280 +1,264 @@
-
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  X,
-  Book,
-  BrainCircuit,
-  Clock,
-  HelpCircle,
-  ChevronDown,
-  Wind,
-  Feather,
-  Zap,
-} from "lucide-react";
-import { Button } from "./ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
-import { useLocation } from "wouter";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
+import { Button } from "../components/ui/button";
+import { Loader2, Settings, Book, Clock, Hash, ChevronRight, Zap, Brain, Flame, FileText, CheckCircle } from "lucide-react";
 import { mockSubjects } from "../lib/mockData";
+import { cn } from "../lib/utils";
 
-const funnyLoaders = [
-  "Reticulating Splines...",
-  "Generating witty dialog...",
-  "Charging flux capacitor...",
-  "Asking the magic smoke...",
-  "Aligning cosmic rays...",
-  "Calibrating the doodads...",
-];
 
-const subjectUnits: { [key: string]: string[] } = {
-  Mathematics: ["Algebra", "Geometry", "Calculus", "Trigonometry"],
-  Physics: ["Mechanics", "Thermodynamics", "Electromagnetism", "Quantum Physics"],
-  Chemistry: ["Organic", "Inorganic", "Physical", "Analytical"],
-  Biology: ["Genetics", "Ecology", "Anatomy", "Botany"],
-  "English Literature": ["Shakespeare", "Modernism", "Poetry", "The Novel"],
-  History: ["Ancient", "Medieval", "Renaissance", "Modern"],
-  "Computer Science": ["Algorithms", "Data Structures", "AI", "Networking"],
-};
+interface Unit {
+  id: number;
+  name: string;
+}
+
+interface QuizConfig {
+  difficulty: string;
+  subjectId: string;
+  unitId: string;
+  numQuestions: string;
+  timeLimit: string;
+}
 
 interface QuizSetupModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onStartQuiz: (config: QuizConfig) => void;
 }
 
-const QuizSetupModal: React.FC<QuizSetupModalProps> = ({
-  isOpen,
-  onClose,
-}) => {
-  const [mode, setMode] = useState<string | null>(null);
-  const [subject, setSubject] = useState<string | null>(null);
-  const [unit, setUnit] = useState<string | null>(null);
-  const [time, setTime] = useState<string | null>(null);
-  const [questions, setQuestions] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loaderText, setLoaderText] = useState(funnyLoaders[0]);
+const difficulties = [
+    { name: "Easy", icon: <Zap className="w-5 h-5" /> },
+    { name: "Medium", icon: <Brain className="w-5 h-5" /> },
+    { name: "Hard", icon: <Flame className="w-5 h-5" /> },
+];
+const questionCounts = ["5", "10", "15", "20"];
+const timeLimits = ["5", "10", "15", "30"];
 
-  const [, setLocation] = useLocation();
+const mockUnits: { [key: string]: Unit[] } = {
+  "1": [{ id: 1, name: "Algebra Basics" }, { id: 2, name: "Linear Equations" }],
+  "2": [{ id: 1, name: "Kinematics" }, { id: 2, name: "Dynamics" }],
+  "3": [{ id: 1, name: "Atomic Structure" }, { id: 2, name: "Chemical Bonds" }],
+  "4": [{ id: 1, name: "Cell Biology" }, { id: 2, name: "Genetics" }],
+  "5": [{ id: 1, name: "Shakespeare" }, { id: 2, name: "Modern Poetry" }],
+  "6": [{ id: 1, name: "Ancient Civilizations" }, { id: 2, name: "World War II" }],
+  "7": [{ id: 1, name: "Data Structures" }, { id: 2, name: "Algorithms" }],
+};
+
+const FunnyLoader = () => (
+    <motion.div
+      className="flex flex-col items-center justify-center space-y-4"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+    >
+        <div className="relative">
+            <Book className="w-16 h-16 text-blue-500 animate-bounce" />
+            <motion.div
+                className="absolute top-0 left-0 w-full h-full"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            >
+                <FileText className="w-6 h-6 text-green-500 absolute top-0 right-0" />
+                <Hash className="w-6 h-6 text-red-500 absolute bottom-0 left-0" />
+                <Clock className="w-6 h-6 text-yellow-500 absolute -top-2 -left-2" />
+            </motion.div>
+        </div>
+      <p className="text-lg font-medium text-gray-700 dark:text-gray-300">Crafting your challenge...</p>
+    </motion.div>
+  );
+
+export function QuizSetupModal({ isOpen, onClose, onStartQuiz }: QuizSetupModalProps) {
+  const [config, setConfig] = useState<QuizConfig>({
+    difficulty: "Medium",
+    subjectId: "",
+    unitId: "",
+    numQuestions: "10",
+    timeLimit: "10",
+  });
+  const [units, setUnits] = useState<Unit[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isLoading) {
-      interval = setInterval(() => {
-        setLoaderText(
-          funnyLoaders[Math.floor(Math.random() * funnyLoaders.length)]
-        );
-      }, 2000);
+    if (config.subjectId) {
+      setUnits(mockUnits[config.subjectId] || []);
+      setConfig(c => ({ ...c, unitId: "" }));
+    } else {
+      setUnits([]);
     }
-    return () => clearInterval(interval);
-  }, [isLoading]);
+  }, [config.subjectId]);
 
-  const handleTakeQuiz = () => {
-    if (mode && subject && unit && time && questions) {
-      setIsLoading(true);
-      setTimeout(() => {
-        setIsLoading(false);
-        const query = new URLSearchParams({
-            mode,
-            subject,
-            unit,
-            time,
-            questions
-        }).toString();
-        setLocation(`/studio/quiz?${query}`);
-      }, 4000); // Simulate loading
-    }
+  const handleStart = () => {
+    setIsLoading(true);
+    // Simulate loading
+    setTimeout(() => {
+      onStartQuiz(config);
+      setIsLoading(false);
+      onClose();
+    }, 2500);
   };
 
-  const isFormComplete = mode && subject && unit && time && questions;
+  const isFormValid = config.subjectId && config.unitId;
 
-  const getUnitsForSubject = (selectedSubject: string | null) => {
-    return selectedSubject ? subjectUnits[selectedSubject] || [] : [];
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+      },
+    },
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          onClick={onClose}
-        >
-          <motion.div
-            initial={{ scale: 0.9, y: 50 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.9, y: 50 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="bg-white dark:bg-gray-900/90 border border-gray-200 dark:border-gray-700/50 rounded-2xl shadow-2xl w-full max-w-2xl text-gray-900 dark:text-gray-100"
-            onClick={(e) => e.stopPropagation()}
-          >
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border-none">
+        <motion.div initial="hidden" animate="visible" variants={containerVariants}>
+          <DialogHeader>
+            <motion.div variants={itemVariants} className="flex flex-col items-center text-center">
+                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-3">
+                    <Settings className="h-8 w-8 text-blue-500 dark:text-blue-400" />
+                </div>
+                <DialogTitle className="text-2xl font-bold text-slate-800 dark:text-white">
+                    Craft Your Quiz
+                </DialogTitle>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Personalize your practice session for the best results.</p>
+            </motion.div>
+          </DialogHeader>
+
+          <AnimatePresence mode="wait">
             {isLoading ? (
-              <div className="h-96 flex flex-col items-center justify-center text-center p-8">
-                <motion.div
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    rotate: [0, 10, -10, 0],
-                  }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                >
-                  <BrainCircuit className="h-20 w-20 text-purple-500" />
+                <motion.div key="loader" className="h-80 flex items-center justify-center">
+                    <FunnyLoader />
                 </motion.div>
-                <p className="text-xl font-semibold mt-6">{loaderText}</p>
-              </div>
             ) : (
-              <>
-                <div className="p-6 border-b border-gray-200 dark:border-gray-700/50 flex justify-between items-center">
-                  <div className="flex items-center gap-4">
-                    <BrainCircuit className="h-8 w-8 text-purple-500" />
-                    <h2 className="text-2xl font-bold tracking-tight">
-                      Customize Your Challenge
-                    </h2>
-                  </div>
-                  <Button variant="ghost" size="icon" onClick={onClose}>
-                    <X className="h-5 w-5" />
-                  </Button>
-                </div>
-                <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Mode */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Zap className="h-5 w-5 text-yellow-500" />
-                      <label className="font-semibold">Mode</label>
-                    </div>
-                    <Select onValueChange={setMode} value={mode || undefined}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select mode" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="easy">
-                          <div className="flex items-center gap-2">
-                            <Feather className="h-4 w-4 text-green-500" /> Easy
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="medium">
-                          <div className="flex items-center gap-2">
-                            <Wind className="h-4 w-4 text-blue-500" /> Medium
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="hard">
-                          <div className="flex items-center gap-2">
-                            <Zap className="h-4 w-4 text-red-500" /> Hard
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Subject */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Book className="h-5 w-5 text-blue-500" />
-                      <label className="font-semibold">Subject</label>
-                    </div>
-                    <Select onValueChange={(value) => { setSubject(value); setUnit(null); }} value={subject || undefined}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select subject" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {mockSubjects.map((s) => (
-                          <SelectItem key={s.id} value={s.name}>
-                            {s.name}
-                          </SelectItem>
+            <motion.div
+                key="form"
+                className="grid gap-6 py-6"
+                initial={{opacity: 0}}
+                animate={{opacity: 1}}
+                exit={{opacity: 0}}
+            >
+                <motion.div variants={itemVariants} className="px-4">
+                    <label className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2 block text-center">Select Difficulty</label>
+                    <div className="grid grid-cols-3 gap-2">
+                        {difficulties.map((d) => (
+                            <motion.div key={d.name} whileHover={{scale: 1.05}} whileTap={{scale: 0.95}}>
+                                <Button
+                                variant="outline"
+                                onClick={() => setConfig({ ...config, difficulty: d.name })}
+                                className={cn("w-full h-16 flex flex-col gap-1 transition-all duration-300",
+                                    config.difficulty === d.name ? "bg-blue-500 text-white shadow-lg" : "bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700"
+                                )}
+                                >
+                                {d.icon}
+                                <span className="text-sm">{d.name}</span>
+                                </Button>
+                            </motion.div>
                         ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Unit */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <ChevronDown className="h-5 w-5 text-gray-500" />
-                      <label className="font-semibold">Unit</label>
                     </div>
-                    <Select onValueChange={setUnit} value={unit || undefined} disabled={!subject}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder={!subject ? "First, select a subject" : "Select unit"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {getUnitsForSubject(subject).map((u) => (
-                          <SelectItem key={u} value={u}>
-                            {u}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                </motion.div>
 
-                  {/* Time */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-5 w-5 text-indigo-500" />
-                      <label className="font-semibold">Time Limit</label>
+                <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4 px-4">
+                    <div>
+                        <label className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2 block">Subject</label>
+                        <Select value={config.subjectId} onValueChange={(value) => setConfig({ ...config, subjectId: value })}>
+                            <SelectTrigger className="w-full">
+                                <Book className="w-4 h-4 mr-2 text-slate-500" />
+                                <SelectValue placeholder="Choose..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {mockSubjects.map((s) => (
+                                    <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
-                    <Select onValueChange={setTime} value={time || undefined}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select time" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="10">10 minutes</SelectItem>
-                        <SelectItem value="20">20 minutes</SelectItem>
-                        <SelectItem value="30">30 minutes</SelectItem>
-                        <SelectItem value="60">60 minutes</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                    <div>
+                        <label className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2 block">Unit</label>
+                        <Select value={config.unitId} onValueChange={(value) => setConfig({ ...config, unitId: value })} disabled={!config.subjectId}>
+                            <SelectTrigger className="w-full" disabled={!config.subjectId}>
+                                <FileText className="w-4 h-4 mr-2 text-slate-500" />
+                                <SelectValue placeholder="Choose..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {units.map((u) => (
+                                    <SelectItem key={u.id} value={u.id.toString()}>{u.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </motion.div>
 
-                  {/* Questions */}
-                  <div className="space-y-3 col-span-1 md:col-span-2">
-                    <div className="flex items-center gap-2">
-                      <HelpCircle className="h-5 w-5 text-green-500" />
-                      <label className="font-semibold">Number of Questions</label>
+                <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4 px-4">
+                <div>
+                        <label className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2 block">Questions</label>
+                        <Select value={config.numQuestions} onValueChange={(value) => setConfig({ ...config, numQuestions: value })}>
+                            <SelectTrigger className="w-full">
+                                <Hash className="w-4 h-4 mr-2 text-slate-500" />
+                                <SelectValue placeholder="#..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {questionCounts.map((c) => (
+                                    <SelectItem key={c} value={c}>{c} questions</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
-                    <Select onValueChange={setQuestions} value={questions || undefined}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select number of questions" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="10">10 Questions</SelectItem>
-                        <SelectItem value="20">20 Questions</SelectItem>
-                        <SelectItem value="30">30 Questions</SelectItem>
-                        <SelectItem value="50">50 Questions</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="p-6 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700/50 flex justify-end">
-                  <motion.div
-                    whileHover={{ scale: isFormComplete ? 1.05 : 1 }}
-                    whileTap={{ scale: isFormComplete ? 0.95 : 1 }}
-                  >
-                    <Button
-                      size="lg"
-                      onClick={handleTakeQuiz}
-                      disabled={!isFormComplete}
-                      className="bg-purple-600 hover:bg-purple-700 text-white font-bold transition-all duration-300 shadow-lg disabled:bg-gray-400 disabled:shadow-none disabled:cursor-not-allowed"
-                    >
-                      Take Quiz
-                    </Button>
-                  </motion.div>
-                </div>
-              </>
+                    <div>
+                        <label className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2 block">Time</label>
+                        <Select value={config.timeLimit} onValueChange={(value) => setConfig({ ...config, timeLimit: value })}>
+                            <SelectTrigger className="w-full">
+                                <Clock className="w-4 h-4 mr-2 text-slate-500" />
+                                <SelectValue placeholder="Mins..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {timeLimits.map((t) => (
+                                    <SelectItem key={t} value={t}>{t} minutes</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </motion.div>
+
+            </motion.div>
             )}
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-};
+          </AnimatePresence>
 
-export default QuizSetupModal;
+
+          <DialogFooter>
+            <motion.div variants={itemVariants} className="w-full">
+                <Button
+                onClick={handleStart}
+                disabled={!isFormValid || isLoading}
+                className="w-full h-14 bg-green-600 hover:bg-green-700 text-white font-bold text-lg rounded-xl transition-all duration-300 transform hover:scale-105 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:scale-100"
+                >
+                {isLoading ? (
+                    <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+                ) : (
+                    <>
+                    Start Challenge
+                    <ChevronRight className="ml-2 h-5 w-5" />
+                    </>
+                )}
+                </Button>
+            </motion.div>
+          </DialogFooter>
+        </motion.div>
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -3,7 +3,7 @@ import { ArrowLeft, Moon, Sun } from "lucide-react";
 import { useTheme } from "../hooks/use-theme";
 import { useLocation } from "wouter";
 
-export function MinimalHeader() {
+export default function MinimalHeader() {
   const { theme, setTheme } = useTheme();
   const [, setLocation] = useLocation();
 

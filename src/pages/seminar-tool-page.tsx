@@ -5,7 +5,7 @@ import { Progress } from '../components/ui/progress';
 import {Zap,ChevronRight,BookOpen,Mic,Award,Star} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './seminar-tool-page.css';
-import { MinimalHeader } from '../components/minimal-header';
+import MinimalHeader from '../components/minimal-header';
 import { useTheme } from '../hooks/use-theme';
 import { cn } from '../lib/utils';
 

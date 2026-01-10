@@ -23,7 +23,7 @@ import {
   HelpCircle,
 } from "lucide-react";
 import "./debate-tool-page.css";
-import { MinimalHeader } from "../components/minimal-header";
+import MinimalHeader from "../components/minimal-header";
 import { useTheme } from "../hooks/use-theme";
 import { cn } from "../lib/utils";
 
