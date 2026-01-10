@@ -214,7 +214,8 @@ const DebateToolPage = () => {
           className="w-20 bg-gray-200 dark:bg-gray-900 p-2 flex flex-col items-center space-y-3 shrink-0"
         >
           <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-2xl cursor-pointer brand-icon">
-            <Bot />
+            {/* <Bot /> */}
+             AI
           </div>
           <div className="w-full h-px bg-gray-300 dark:bg-gray-700"></div>
           <TooltipProvider delayDuration={0}>

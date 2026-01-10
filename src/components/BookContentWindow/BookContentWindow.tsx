@@ -473,7 +473,7 @@ const persistentSelection = useRef("");
             <div className="brand">
               <div className="brand-dot"></div>
               <h1 className="logo">
-                Expanded<span>Book Content</span>
+                Book<span> Content</span>
               </h1>
             </div>
             <div className="header-actions">

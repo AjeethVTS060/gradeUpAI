@@ -69,18 +69,18 @@ export default function Sidebar({ currentRole }: SidebarProps) {
 
   const studentTools = [
     { icon: Bot, label: "AI Tutor", href: "/ai-tutor" },
-    { icon: BookOpen, label: "Book Content", href: "/bookGallery" },
-    { icon: FileText, label: "Expanded Content", href: "/bookExpanded" },
+    // { icon: BookOpen, label: "Book Content", href: "/bookGallery" },
+    { icon: FileText, label: "Book Content", href: "/bookExpanded" },
     {
       icon: FileText,
       label: "Homework Tool",
       href: "/homework",
-      children: [
-        { label: "My Assignments", href: "/homework" },
-        { label: "Create Assignment", href: "/homework/create" },
-      ],
+      // children: [
+      //   { label: "My Assignments", href: "/homework" },
+      //   { label: "Create Assignment", href: "/homework/create" },
+      // ],
     },
-    { icon: MessageSquare, label: "Community", href: "/community" },
+    { icon: MessageSquare, label: "Community", href: "/debate-tool" },
     { icon: Trophy, label: "Achievements", href: "/progress" },
     { icon: Users, label: "Seminar Tool", href: "/seminar-tool" },
     { icon: Users, label: "Debate Tool", href: "/debate-tool" },
