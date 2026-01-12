@@ -25,7 +25,7 @@ export default function Dashboard() {
   const handleRoleChange = (newRole: string) => {
     // In a real app, you might have more complex logic for changing roles
     setCurrentRole(newRole);
-    console.log("Switched role to:", newRole);
+    // console.log("Switched role to:", newRole);
   };
 
   return (

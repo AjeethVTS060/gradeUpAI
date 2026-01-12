@@ -1,38 +1,85 @@
-.perspective-1000 {
-  perspective: 1000px;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+
+.font-sans {
+    font-family: 'Inter', sans-serif;
 }
 
-.card-3d {
-  transform-style: preserve-3d;
-  transition: transform 0.5s;
+.animate-spin-slow {
+    animation: spin 3s linear infinite;
 }
 
-.card-3d-inner {
-  transform: rotateY(0deg);
-  transition: transform 0.5s;
-  transform-style: preserve-3d;
+.seminar-bg {
+    position: relative;
 }
 
-.card-3d:hover .card-3d-inner {
-  transform: rotateY(5deg);
+.seminar-bg::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+        radial-gradient(circle at 10% 20%, rgba(167, 139, 250, 0.1), transparent 25%),
+        radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.1), transparent 25%);
+    background-size: 100% 100%;
+    z-index: 0;
+    transition: opacity 0.5s ease-in-out;
 }
 
-.card-3d-active {
-  transform: scale(1.05);
+.dark .seminar-bg::before {
+    background-image:
+        radial-gradient(circle at 10% 20%, rgba(167, 139, 250, 0.15), transparent 30%),
+        radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.15), transparent 30%),
+        radial-gradient(circle at 50% 50%, rgba(100, 116, 139, 0.05), transparent 35%);
 }
 
-.card-3d-active .card-3d-inner {
-  box-shadow: 0 0 30px rgba(192, 132, 252, 0.5);
-  border-color: rgba(192, 132, 252, 0.8) !important;
+main {
+    z-index: 1;
 }
 
 
-.card-3d-completed .card-3d-inner {
-  opacity: 0.6;
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+    width: 8px;
+}
   
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+  
+::-webkit-scrollbar-thumb {
+    background-color: rgba(139, 92, 246, 0.5); /* purple-500 with opacity */
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: content-box;
 }
 
-.card-3d-completed:hover .card-3d-inner {
-    opacity: 0.8;
-    transform: rotateY(0deg);
+.dark ::-webkit-scrollbar-thumb {
+    background-color: rgba(167, 139, 250, 0.6); /* purple-400 with opacity */
+}
+  
+::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(139, 92, 246, 0.8);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(167, 139, 250, 0.9);
+}
+
+/* Floating Action Button animation */
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+.floating-fab {
+    animation: float 2s ease-in-out infinite;
 }

@@ -108,9 +108,9 @@ export default function AITutorImproved() {
         // Create a dummy audio context to enable audio
         const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
         await audioContext.resume();
-        console.log("Audio automatically enabled");
+        // console.log("Audio automatically enabled");
       } catch (error) {
-        console.log("Audio auto-enable failed:", error);
+        // console.log("Audio auto-enable failed:", error);
       }
     };
     enableAudio();
@@ -168,7 +168,7 @@ export default function AITutorImproved() {
           }))
         })));
       } catch (error) {
-        console.error("Failed to load chat history:", error);
+        // console.error("Failed to load chat history:", error);
       }
     }
   }, []);
@@ -327,7 +327,7 @@ export default function AITutorImproved() {
       await audioRef.current.play();
       
     } catch (error) {
-      console.error('Speech error:', error);
+      // console.error('Speech error:', error);
       setIsSpeaking(false);
       setCurrentWordIndex(-1);
       setResponseWords([]);
@@ -428,7 +428,7 @@ export default function AITutorImproved() {
       }, 500);
       
     } catch (error) {
-      console.error('Chat error:', error);
+      // console.error('Chat error:', error);
       toast({
         title: "Chat Error",
         description: "Failed to get response. Please try again.",

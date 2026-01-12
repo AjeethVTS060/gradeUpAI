@@ -285,9 +285,9 @@ const handleQuickAsk = async () => {
         const audioContext = new (window.AudioContext ||
           (window as any).webkitAudioContext)();
         await audioContext.resume();
-        console.log("Audio automatically enabled");
+        // console.log("Audio automatically enabled");
       } catch (error) {
-        console.log("Audio auto-enable failed:", error);
+        // console.log("Audio auto-enable failed:", error);
       }
     };
     enableAudio();
@@ -352,7 +352,7 @@ const handleQuickAsk = async () => {
           }))
         );
       } catch (error) {
-        console.error("Failed to load chat history:", error);
+        // console.error("Failed to load chat history:", error);
       }
     }
   }, []);
@@ -541,7 +541,7 @@ const handleQuickAsk = async () => {
         }
       }
     } catch (error) {
-      console.error("Speech error:", error);
+      // console.error("Speech error:", error);
       setIsSpeaking(false);
       setCurrentWordIndex(-1);
       setResponseWords([]);
@@ -695,7 +695,7 @@ const handleQuickAsk = async () => {
         speakText(data.response);
       }, 500);
     } catch (error) {
-      console.error("Chat error:", error);
+      // console.error("Chat error:", error);
       toast({
         title: "Chat Error",
         description: "Failed to get response. Please try again.",

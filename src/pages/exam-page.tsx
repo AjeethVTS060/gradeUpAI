@@ -9,22 +9,22 @@ import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import { 
-  Clock, 
-  Volume2, 
-  VolumeX, 
-  Mic, 
-  MicOff, 
-  Play, 
-  Square, 
-  CheckCircle, 
-  XCircle,
-  RefreshCw,
-  BookOpen,
-  Award,
-  Target,
-  ArrowLeft
-} from "lucide-react";
-import { Link } from "wouter";
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription, 
+  DialogFooter 
+} from "../components/ui/dialog";
+import { Link, useNavigate } from "wouter";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription, 
+  DialogFooter 
+} from "../components/ui/dialog";
 import { cn } from "../lib/utils";
 import { apiRequest, queryClient } from "../lib/queryClient";
 import Navigation from "../components/navigation";
@@ -357,45 +357,52 @@ export default function ExamPage() {
   const currentQuestion = examSession?.questions[examSession.currentIndex];
   const progress = examSession ? ((examSession.currentIndex + 1) / examSession.questions.length) * 100 : 0;
 
-  if (showResults && examResults) {
+  const navigate = useNavigate();
+
+  if (examSession && showResults && examResults) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Navigation currentRole={user?.role || "student"} onRoleChange={() => {}} />
-        
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="text-center">
-            <CardHeader>
-              <div className="flex items-center justify-center mb-4">
-                <Award className="h-16 w-16 text-yellow-500" />
-              </div>
-              <CardTitle className="text-2xl">Exam Completed!</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{examResults.score}</div>
-                  <div className="text-sm text-gray-600">Correct Answers</div>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-gray-600">{examResults.totalQuestions}</div>
-                  <div className="text-sm text-gray-600">Total Questions</div>
-                </div>
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">{examResults.percentage}%</div>
-                  <div className="text-sm text-gray-600">Score Percentage</div>
-                </div>
-              </div>
-              
-              <Button onClick={() => setShowResults(false)} className="mr-4">
-                Take Another Exam
-              </Button>
-              <Button variant="outline" onClick={() => window.location.href = "/"}>
-                Back to Dashboard
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <Dialog open={showResults} onOpenChange={setShowResults}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-center">Exam Completed!</DialogTitle>
+            <DialogDescription className="text-center">
+              Congratulations on completing your exam! Here are your results.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center justify-center mb-4">
+            <Award className="h-16 w-16 text-yellow-500" />
+          </div>
+          <div className="grid grid-cols-1 gap-4 text-center">
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600">{examResults.score}</div>
+              <div className="text-sm text-gray-600">Correct Answers</div>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="text-2xl font-bold text-gray-600">{examResults.totalQuestions}</div>
+              <div className="text-sm text-gray-600">Total Questions</div>
+            </div>
+            <div className="bg-green-50 p-4 rounded-lg">
+              <div className="text-2xl font-bold text-green-600">{examResults.percentage}%</div>
+              <div className="text-sm text-gray-600">Score Percentage</div>
+            </div>
+          </div>
+          <DialogFooter className="flex-col gap-2 pt-4">
+            <Button onClick={() => setShowResults(false)} className="w-full">
+              Take Another Exam
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowResults(false);
+                navigate("/ai-tutor-page");
+              }} 
+              className="w-full"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" /> Back to AI Tutor
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     );
   }
 
@@ -407,7 +414,7 @@ export default function ExamPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
-              <Link href="/">
+              <Link href="/ai-tutor-page">
                 <Button variant="outline" className="flex items-center gap-2">
                   <ArrowLeft className="h-4 w-4" />
                   Back to Dashboard

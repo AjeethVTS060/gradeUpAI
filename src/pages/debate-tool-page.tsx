@@ -1,515 +1,401 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { ScrollArea } from "../components/ui/scroll-area";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../components/ui/tooltip";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Hash,
-  Settings,
-  Mic,
-  Headphones,
-  PlusCircle,
-  Bot,
-  Send,
-  Search,
-  Inbox,
-  HelpCircle,
-} from "lucide-react";
-import "./debate-tool-page.css";
-import MinimalHeader from "../components/minimal-header";
-import { useTheme } from "../hooks/use-theme";
-import { cn } from "../lib/utils";
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Textarea } from '../components/ui/textarea';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Brain, Mic, Megaphone, Lightbulb, User, MessageSquareText, Hourglass, CheckCircle, XCircle, ChevronRight, Loader2, Sparkles, Trophy, ArrowLeft, Send } from 'lucide-react';
+import MinimalHeader from '../components/minimal-header';
+import { useTheme } from '../hooks/use-theme';
+import { Link, useLocation } from 'wouter';
 
-const debateData = {
-  servers: [
-    { id: "1", name: "General Debate", icon: "🌍", defaultChannel: "1" },
-    { id: "2", name: "History Buffs", icon: "📜", defaultChannel: "1" },
-    { id: "3", name: "Science Geeks", icon: "🔬", defaultChannel: "1" },
-    { id: "4", name: "Philosophy Corner", icon: "🤔", defaultChannel: "1" },
-  ],
-  channels: {
-    "1": [
-      { id: "1", name: "welcome", unread: 0 },
-      { id: "2", name: "rules", unread: 0 },
-    ],
-    "2": [
-      { id: "1", name: "welcome", unread: 0 },
-      { id: "2", name: "announcements", unread: 1 },
-      { id: "3", name: "ww2-discussion", unread: 3 },
-      { id: "4", name: "ancient-greece", unread: 0 },
-      { id: "5", name: "roman-empire", unread: 0 },
-    ],
-    "3": [
-      { id: "1", name: "welcome", unread: 0 },
-      { id: "2", name: "cosmology", unread: 0 },
-      { id: "3", name: "quantum-mechanics", unread: 5 },
-    ],
-    "4": [
-      { id: "1", name: "stoicism", unread: 2 },
-      { id: "2", name: "existentialism", unread: 0 },
-    ],
-  },
-  messages: {
-    "2_3": [
-      {
-        id: "1",
-        user: "AI Moderator",
-        avatar: "🤖",
-        text: "Welcome to #ww2-discussion! What are your thoughts on the Eastern Front?",
-        timestamp: "1 hour ago",
-        isAI: true,
-      },
-    ],
-    "4_1": [
-        {
-          id: "1",
-          user: "AI Moderator",
-          avatar: "🤖",
-          text: "Welcome to #stoicism! To quote Marcus Aurelius: 'You have power over your mind - not outside events. Realize this, and you will find strength.'",
-          timestamp: "2 hours ago",
-          isAI: true,
-        },
-        {
-            id: '2',
-            user: 'You',
-            avatar: 'https://i.pravatar.cc/40?u=you',
-            text: 'How can one apply this in a high-stress modern work environment?',
-            timestamp: '1 hour ago',
-        },
-        {
-            id: '3',
-            user: 'Epictetus',
-            avatar: 'https://i.pravatar.cc/40?u=epictetus',
-            text: 'The essence lies in distinguishing what you can control from what you cannot. Your reaction to stress is within your power, the external demands are not.',
-            timestamp: '30 minutes ago',
-            isAI: true,
-            isOpponent: true
-        }
-    ],
-  },
-  members: {
-    "2_3": [
-        { id: '1', name: 'AI Moderator', status: 'Online', isAI: true },
-        { id: '2', name: 'You', status: 'Online' },
-        { id: '3', name: 'Winston Churchill', status: 'Online', isAI: true, isOpponent: true },
-        { id: '4', name: 'Eleanor Roosevelt', status: 'Offline' },
-    ],
-    "4_1": [
-        { id: '1', name: 'AI Moderator', status: 'Online', isAI: true },
-        { id: '2', name: 'You', status: 'Online' },
-        { id: '3', name: 'Epictetus', status: 'Online', isAI: true, isOpponent: true },
-        { id: '4', name: 'Seneca', status: 'Online', isAI: true, isOpponent: true },
-        { id: '5', name: 'Marcus Aurelius', status: 'Offline' },
-    ]
-  },
-};
+import './debate-tool-page.css'; // Assuming this CSS file exists for custom styles
 
-const initialServerId = "2";
-const initialChannelId = debateData.servers.find(s => s.id === initialServerId)?.defaultChannel || "1";
+const FunnyLoader = ({ text = "The AI is pondering its arguments..." }) => (
+    <motion.div
+        className="flex flex-col items-center justify-center space-y-4 text-center"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.8 }}
+    >
+        <motion.div
+            animate={{
+                y: [0, -10, 0],
+                rotate: [0, 5, -5, 0]
+            }}
+            transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+            }}
+        >
+            <Brain className="h-20 w-20 text-purple-500" />
+        </motion.div>
+        <p className="text-xl font-semibold text-gray-700 dark:text-gray-300">{text}</p>
+        <Loader2 className="h-8 w-8 text-purple-400 animate-spin" />
+    </motion.div>
+);
 
 const DebateToolPage = () => {
-  const { theme } = useTheme();
-  const [activeServerId, setActiveServerId] = useState(initialServerId);
-  const [activeChannelId, setActiveChannelId] = useState(initialChannelId);
+    const { theme, setTheme } = useTheme();
+    const [, setLocation] = useLocation();
 
-  const [messages, setMessages] = useState(
-    debateData.messages[`${activeServerId}_${activeChannelId}`] || []
-  );
-  const [typing, setTyping] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+    const [debateState, setDebateState] = useState('setup'); // setup, debating, results
+    const [topic, setTopic] = useState('');
+    const [proArgument, setProArgument] = useState('');
+    const [conArgument, setConArgument] = useState('');
+    const [aiRole, setAiRole] = useState<'pro' | 'con'>('con'); // AI takes the 'con' side by default
+    const [currentTurn, setCurrentTurn] = useState<'player' | 'ai'>('player');
+    const [debateLog, setDebateLog] = useState<{ speaker: 'player' | 'ai', argument: string }[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [debateRound, setDebateRound] = useState(1); // To track turns
+    const [playerScore, setPlayerScore] = useState(0);
+    const [aiScore, setAiScore] = useState(0);
 
-  const activeServer = debateData.servers.find((s) => s.id === activeServerId);
-  const channelsForActiveServer = debateData.channels[activeServerId] || [];
-  const activeChannel = channelsForActiveServer.find(
-    (c) => c.id === activeChannelId
-  );
-  const membersForActiveChannel =
-    debateData.members[`${activeServerId}_${activeChannelId}`] || [];
+    const MAX_ROUNDS = 3; // Example: 3 rounds of arguments
 
     useEffect(() => {
-        const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
-        if (viewport) {
-            viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+        if (debateState === 'debating' && currentTurn === 'ai') {
+            setIsLoading(true);
+            setTimeout(() => {
+                const aiArgument = generateAiArgument(topic, debateLog);
+                setDebateLog(prev => [...prev, { speaker: 'ai', argument: aiArgument }]);
+                evaluateArguments(aiArgument, 'ai');
+                setCurrentTurn('player');
+                setDebateRound(prev => prev + 1);
+                setIsLoading(false);
+            }, 3000); // Simulate AI thinking time
         }
-    }, [messages, isTyping]);
+    }, [currentTurn, debateState, topic, debateLog]);
 
-
-  const handleServerSelect = (serverId: string) => {
-    setActiveServerId(serverId);
-    const newServer = debateData.servers.find((s) => s.id === serverId);
-    const newChannelId =
-      newServer?.defaultChannel || debateData.channels[serverId]?.[0]?.id || "1";
-    setActiveChannelId(newChannelId);
-    setMessages(debateData.messages[`${serverId}_${newChannelId}`] || []);
-  };
-
-  const handleChannelSelect = (channelId: string) => {
-    setActiveChannelId(channelId);
-    setMessages(debateData.messages[`${activeServerId}_${channelId}`] || []);
-  };
-
-  const handleSend = () => {
-    if (typing.trim() === "") return;
-    const newMessage = {
-      id: (messages.length + 1).toString(),
-      user: "You",
-      avatar: "https://i.pravatar.cc/40?u=you",
-      text: typing,
-      timestamp: "Just now",
+    const handleSetupSubmit = () => {
+        if (topic.trim() === '') {
+            alert('Please enter a debate topic.');
+            return;
+        }
+        setDebateLog([{ speaker: 'player', argument: `Debate Topic: "${topic}"` }]);
+        setDebateState('debating');
+        setCurrentTurn('player'); // Player starts the debate
     };
-    const newMessages = [...messages, newMessage];
-    setMessages(newMessages);
-    
-    // In a real app, this would be an API call. We're updating a mock object for now.
-    const key = `${activeServerId}_${activeChannelId}`;
-    if (!debateData.messages[key]) {
-        debateData.messages[key] = [];
-    }
-    debateData.messages[key].push(newMessage);
 
+    const handlePlayerArgumentSubmit = () => {
+        if (proArgument.trim() === '' && aiRole === 'con') {
+            alert('Please enter your argument for the "Pro" side.');
+            return;
+        }
+        if (conArgument.trim() === '' && aiRole === 'pro') {
+            alert('Please enter your argument for the "Con" side.');
+            return;
+        }
 
-    setTyping("");
+        const playerArg = aiRole === 'con' ? proArgument : conArgument;
+        setDebateLog(prev => [...prev, { speaker: 'player', argument: playerArg }]);
+        evaluateArguments(playerArg, 'player');
 
-    // Simulate opponent response
-    setIsTyping(true);
-    setTimeout(() => {
-        const opponents = membersForActiveChannel.filter(m => m.isOpponent);
-        const randomOpponent = opponents[Math.floor(Math.random() * opponents.length)] || {name: 'AI Opponent', avatar: 'https://i.pravatar.cc/40?u=ai'};
+        setProArgument('');
+        setConArgument('');
 
-      const opponentResponse = {
-        id: (newMessages.length + 2).toString(),
-        user: randomOpponent.name,
-        avatar: `https://i.pravatar.cc/40?u=${randomOpponent.name}`,
-        text: "An interesting perspective. I will need a moment to formulate a counter-argument.",
-        timestamp: "Just now",
-        isAI: true,
-        isOpponent: true,
-      };
-      setMessages((prev) => [...prev, opponentResponse]);
-       debateData.messages[key].push(opponentResponse);
-      setIsTyping(false);
-    }, 2000);
-  };
+        if (debateRound < MAX_ROUNDS) {
+            setCurrentTurn('ai');
+        } else {
+            setDebateState('results');
+        }
+    };
 
-  return (
-    <div
-      className={cn(
-        "flex flex-col h-screen font-sans overflow-hidden",
-        theme === "dark" ? "dark" : ""
-      )}
-    >
-      <div className="flex flex-1 overflow-hidden">
-        {/* Server List */}
-        <motion.div
-          initial={{ x: -70 }}
-          animate={{ x: 0 }}
-          className="w-20 bg-gray-200 dark:bg-gray-900 p-2 flex flex-col items-center space-y-3 shrink-0"
-        >
-          <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-2xl cursor-pointer brand-icon">
-            {/* <Bot /> */}
-             AI
-          </div>
-          <div className="w-full h-px bg-gray-300 dark:bg-gray-700"></div>
-          <TooltipProvider delayDuration={0}>
-            {debateData.servers.map((server) => (
-              <Tooltip key={server.id}>
-                <TooltipTrigger asChild>
-                  <motion.div
-                    whileHover={{ scale: 1.1 }}
-                    className="server-icon-wrapper"
-                    onClick={() => handleServerSelect(server.id)}
-                  >
-                    <div
-                      className={`server-icon ${
-                        server.id === activeServerId ? "server-icon-active" : ""
-                      }`}
-                    >
-                      {server.icon}
-                    </div>
-                  </motion.div>
-                </TooltipTrigger>
-                <TooltipContent
-                  side="right"
-                  className="bg-gray-900 text-white border-none"
-                >
-                  <p>{server.name}</p>
-                </TooltipContent>
-              </Tooltip>
-            ))}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <motion.div whileHover={{ scale: 1.1 }}>
-                  <div className="server-icon bg-gray-400 dark:bg-gray-700 hover:bg-green-500">
-                    <PlusCircle size={24} />
-                  </div>
-                </motion.div>
-              </TooltipTrigger>
-              <TooltipContent
-                side="right"
-                className="bg-gray-900 text-white border-none"
-              >
-                <p>Add a server</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </motion.div>
+    const generateAiArgument = (currentTopic: string, currentLog: typeof debateLog): string => {
+        // --- Placeholder for actual AI logic (e.g., API call to an LLM) ---
+        // This would involve sending the currentTopic, debateLog, and aiRole to an AI model.
+        // For simulation, we'll make it more dynamic based on context.
 
-        {/* Channel List & User Panel */}
-        <motion.div
-          key={activeServerId}
-          initial={{ x: -240, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          className="w-64 bg-gray-100 dark:bg-gray-800 flex flex-col shrink-0"
-        >
-          <div className="p-4 font-bold text-lg shadow-md h-14 flex items-center border-b border-gray-200 dark:border-gray-900/50">
-            {activeServer?.name}
-          </div>
-          <ScrollArea className="flex-1 px-2 py-4">
-            <h3 className="px-2 text-gray-500 dark:text-gray-400 font-semibold text-sm mb-2 uppercase tracking-wide">
-              Text Channels
-            </h3>
-            {channelsForActiveServer.map((channel) => (
-              <div
-                key={channel.id}
-                onClick={() => handleChannelSelect(channel.id)}
-                className={`channel-link ${
-                  channel.id === activeChannelId ? "channel-link-active" : ""
-                }`}
-              >
-                <div className="flex items-center">
-                  <Hash size={20} className="text-gray-500 mr-2" />
-                  <span>{channel.name}</span>
-                </div>
-                {channel.unread > 0 && (
-                  <div className="bg-red-500 text-white text-xs font-bold rounded-full h-5 min-w-[20px] px-1 flex items-center justify-center">
-                    {channel.unread}
-                  </div>
-                )}
-              </div>
-            ))}
-          </ScrollArea>
-          <div className="p-2 bg-gray-200 dark:bg-gray-900/60 h-16 flex justify-between items-center">
-            <div className="flex items-center">
-              <Avatar className="h-9 w-9 mr-2">
-                <AvatarImage src="https://i.pravatar.cc/40?u=you" />
-                <AvatarFallback>Y</AvatarFallback>
-              </Avatar>
-              <div>
-                <div className="font-semibold text-sm">You</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">
-                  #1234
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
-              <Mic
-                size={20}
-                className="cursor-pointer hover:text-gray-900 dark:hover:text-white"
-              />
-              <Headphones
-                size={20}
-                className="cursor-pointer hover:text-gray-900 dark:hover:text-white"
-              />
-              <Settings
-                size={20}
-                className="cursor-pointer hover:text-gray-900 dark:hover:text-white"
-              />
-            </div>
-          </div>
-        </motion.div>
+        const lastPlayerArgument = currentLog.filter(log => log.speaker === 'player').pop()?.argument.toLowerCase();
+        const keywordsPro = ['benefits', 'advantage', 'growth', 'future', 'positive', 'solution'];
+        const keywordsCon = ['risks', 'drawbacks', 'challenge', 'problem', 'negative', 'consequence'];
 
-        {/* Main Chat */}
-        <div className="flex-1 flex flex-col bg-white dark:bg-gray-700">
-          <motion.div
-            key={`${activeServerId}-${activeChannelId}`}
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="p-4 shadow-md h-14 flex items-center justify-between border-b border-gray-200 dark:border-gray-900/50"
-          >
-      <MinimalHeader />
+        let response = '';
 
-            <div className="flex items-center">
-              <Hash size={24} className="text-gray-500 mr-2" />
-              <h2 className="font-semibold text-lg text-gray-900 dark:text-white">
-                {activeChannel?.name}
-              </h2>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Search
-                size={20}
-                className="text-gray-500 dark:text-gray-400 cursor-pointer hover:text-gray-900 dark:hover:text-white"
-              />
-              <Inbox
-                size={20}
-                className="text-gray-500 dark:text-gray-400 cursor-pointer hover:text-gray-900 dark:hover:text-white"
-              />
-              <HelpCircle
-                size={20}
-                className="text-gray-500 dark:text-gray-400 cursor-pointer hover:text-gray-900 dark:hover:text-white"
-              />
-            </div>
-          </motion.div>
-          <ScrollArea className="flex-1" ref={scrollAreaRef}>
-            <AnimatePresence>
-              <div className="p-4 space-y-6">
-                {messages.map((msg) => (
-                  <motion.div
-                    key={msg.id}
-                    layout
-                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-                    className={`flex items-start message ${
-                      msg.user === "You" ? "message-you" : ""
-                    }`}
-                  >
-                    <Avatar className="h-10 w-10 mr-4">
-                      <AvatarImage src={msg.avatar} />
-                      <AvatarFallback>{msg.user.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-baseline">
-                        <span
-                          className={`font-bold mr-2 ${
-                            msg.isOpponent
-                              ? "text-red-400"
-                              : msg.user === "You"
-                              ? "text-green-400"
-                              : "text-blue-400"
-                          }`}
-                        >
-                          {msg.user}
-                        </span>
-                        {msg.isAI && (
-                          <Bot size={14} className="text-yellow-400" />
+        const generateGenericResponse = (side: 'pro' | 'con') => {
+            if (side === 'pro') {
+                return [
+                    `From a pro perspective on "${currentTopic}", we must emphasize the potential for significant progress and positive change.`,
+                    `The advantages of embracing "${currentTopic}" far outweigh any perceived obstacles, paving the way for a brighter future.`,
+                    `Consider the undeniable benefits of "${currentTopic}" in fostering innovation and improving quality of life.`,
+                ];
+            } else { // con
+                return [
+                    `However, one must carefully consider the substantial risks and unforeseen challenges associated with "${currentTopic}".`,
+                    `While arguments for "${currentTopic}" exist, they often overlook the critical long-term consequences and ethical dilemmas.`,
+                    `It is imperative to address the inherent problems and potential societal impacts before endorsing "${currentTopic}".`,
+                ];
+            }
+        };
+
+        if (aiRole === 'con') { // AI is arguing against the player's potential 'pro' arguments
+            if (lastPlayerArgument) {
+                if (keywordsPro.some(keyword => lastPlayerArgument.includes(keyword))) {
+                    response = `While acknowledging the mentioned ${keywordsPro.find(k => lastPlayerArgument.includes(k))} of the opposing view, it's crucial to also consider the often-overlooked challenges.`;
+                } else if (lastPlayerArgument.includes('innovation')) {
+                    response = 'Innovation is indeed valuable, but without careful consideration of the broader implications, it can lead to unintended negative consequences.';
+                } else if (lastPlayerArgument.includes('data') || lastPlayerArgument.includes('technology')) {
+                    response = 'Relying heavily on technology and data, while modern, can also introduce vulnerabilities and ethical concerns that demand thorough scrutiny.';
+                } else {
+                    response = `That's an interesting point, but from a critical standpoint on "${currentTopic}", we must analyze its potential pitfalls further.`;
+                }
+            } else {
+                response = generateGenericResponse('con')[Math.floor(Math.random() * 3)];
+            }
+        } else { // AI is arguing for the player's potential 'con' arguments
+            if (lastPlayerArgument) {
+                if (keywordsCon.some(keyword => lastPlayerArgument.includes(keyword))) {
+                    response = `Indeed, the ${keywordsCon.find(k => lastPlayerArgument.includes(k))} you highlight are valid, but they are often manageable with proactive measures and robust frameworks.`;
+                } else if (lastPlayerArgument.includes('cost') || lastPlayerArgument.includes('expense')) {
+                    response = 'While initial costs may seem daunting, the long-term returns and efficiency gains often justify the investment, making it a viable path forward.';
+                } else if (lastPlayerArgument.includes('resistance') || lastPlayerArgument.includes('difficulty')) {
+                    response = 'Resistance to change is natural, yet with clear communication and phased implementation, even difficult transitions can be navigated successfully.';
+                } else {
+                    response = `I agree with your assessment. Expanding on "${currentTopic}", we can find even more compelling reasons to support this stance.`;
+                }
+            } else {
+                response = generateGenericResponse('pro')[Math.floor(Math.random() * 3)];
+            }
+        }
+        
+        // Add a round-specific nuance
+        if (debateRound === MAX_ROUNDS) {
+            response += " And in conclusion, our side firmly stands by this position.";
+        } else if (debateRound === 1) {
+            response = "To begin, " + response;
+        }
+
+        return response;
+    };
+
+    const evaluateArguments = (argument: string, speaker: 'player' | 'ai') => {
+        // --- Placeholder for sophisticated NLP-based evaluation ---
+        // In a real AI debate, this would involve NLP models to assess quality, relevance, and rebuttal.
+        let points = 0;
+        const argLower = argument.toLowerCase();
+
+        // Points for length (longer arguments suggest more detail)
+        if (argLower.length > 80) points += 2;
+        else if (argLower.length > 30) points += 1;
+
+        // Points for reasoning keywords
+        const reasoningKeywords = ['because', 'therefore', 'consequently', 'thus', 'as a result', 'given that'];
+        if (reasoningKeywords.some(keyword => argLower.includes(keyword))) points += 2;
+
+        // Points for counter-argument/rebuttal keywords (only relevant if responding to an opposing view)
+        const counterKeywords = ['however', 'but', 'on the other hand', 'conversely', 'despite this', 'nevertheless'];
+        const lastOpponentArgument = debateLog.filter(log => log.speaker !== speaker).pop()?.argument.toLowerCase();
+        if (lastOpponentArgument && counterKeywords.some(keyword => argLower.includes(keyword))) {
+            points += 2;
+        }
+
+        // Basic topic relevance check (very rudimentary)
+        const topicKeywords = topic.toLowerCase().split(' ').filter(word => word.length > 3);
+        if (topicKeywords.some(keyword => argLower.includes(keyword))) points += 1;
+
+        // Award points
+        if (speaker === 'player') setPlayerScore(prev => prev + points);
+        else setAiScore(prev => prev + points);
+
+        // --- Integration point for real AI: ---
+        // If an external AI API were evaluating arguments, its score/feedback
+        // would be processed here to update player/AI scores.
+    };
+
+    const resetDebate = () => {
+        setDebateState('setup');
+        setTopic('');
+        setProArgument('');
+        setConArgument('');
+        setAiRole('con');
+        setCurrentTurn('player');
+        setDebateLog([]);
+        setIsLoading(false);
+        setDebateRound(1);
+        setPlayerScore(0);
+        setAiScore(0);
+    };
+
+    const renderDebateContent = () => {
+        switch (debateState) {
+            case 'setup':
+                return (
+                    <CardContent className="space-y-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="topic" className="text-base">Debate Topic</Label>
+                            <Input
+                                id="topic"
+                                placeholder="E.g., 'Should AI replace human teachers?'"
+                                value={topic}
+                                onChange={(e) => setTopic(e.target.value)}
+                                className="debate-input"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="ai-role" className="text-base">AI's Role</Label>
+                            <select
+                                id="ai-role"
+                                value={aiRole}
+                                onChange={(e) => setAiRole(e.target.value as 'pro' | 'con')}
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <option value="pro">Pro (AI argues for the motion)</option>
+                                <option value="con">Con (AI argues against the motion)</option>
+                            </select>
+                        </div>
+                        <Button onClick={handleSetupSubmit} className="w-full debate-button">
+                            Start AI Practice Debate <Brain className="ml-2 h-4 w-4" />
+                        </Button>
+                    </CardContent>
+                );
+            case 'debating':
+                return (
+                    <CardContent className="space-y-6">
+                        <div className="h-72 overflow-y-auto border rounded-lg p-4 bg-gray-50 dark:bg-gray-800 debate-log-container">
+                            {debateLog.map((entry, index) => (
+                                <motion.div
+                                    key={index}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.1 }}
+                                    className={`mb-3 p-3 rounded-lg max-w-[80%] ${entry.speaker === 'player' ? 'ml-auto bg-blue-100 dark:bg-blue-900 text-right' : 'mr-auto bg-purple-100 dark:bg-purple-900'}`}
+                                >
+                                    <p className="font-semibold">{entry.speaker === 'player' ? 'You' : 'AI Coach'}</p>
+                                    <p className="text-sm">{entry.argument}</p>
+                                </motion.div>
+                            ))}
+                            {isLoading && (
+                                <div className="flex justify-center mt-4">
+                                    <FunnyLoader text="AI is formulating its response..." />
+                                </div>
+                            )}
+                        </div>
+
+                        {debateRound <= MAX_ROUNDS ? (
+                            <div className="space-y-4">
+                                <Label className="text-base flex items-center gap-2">
+                                    <User className="h-4 w-4" /> Your Argument (Round {debateRound}/{MAX_ROUNDS})
+                                    {currentTurn === 'ai' && <Hourglass className="h-4 w-4 animate-pulse text-yellow-500" />}
+                                </Label>
+                                <Textarea
+                                    placeholder={`Enter your argument for the ${aiRole === 'con' ? 'Pro' : 'Con'} side...`}
+                                    value={aiRole === 'con' ? proArgument : conArgument}
+                                    onChange={(e) => aiRole === 'con' ? setProArgument(e.target.value) : setConArgument(e.target.value)}
+                                    disabled={currentTurn === 'ai' || isLoading}
+                                    className="debate-input"
+                                />
+                                <Button
+                                    onClick={handlePlayerArgumentSubmit}
+                                    disabled={currentTurn === 'ai' || isLoading || (aiRole === 'con' ? proArgument.trim() === '' : conArgument.trim() === '')}
+                                    className="w-full debate-button"
+                                >
+                                    Submit Argument <Send className="ml-2 h-4 w-4" />
+                                </Button>
+                            </div>
+                        ) : (
+                            <div className="text-center text-lg font-semibold text-gray-700 dark:text-gray-300">
+                                Debate Concluded! Check Results.
+                            </div>
                         )}
-                        <span className="text-xs text-gray-500">
-                          {msg.timestamp}
-                        </span>
-                      </div>
-                      <p className="text-gray-800 dark:text-gray-200">
-                        {msg.text}
-                      </p>
-                    </div>
-                  </motion.div>
-                ))}
-                {isTyping && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center pl-14"
-                  >
-                    <Avatar className="h-10 w-10 mr-4">
-                      <AvatarImage src="https://i.pravatar.cc/40?u=ai" />
-                      <AvatarFallback>A</AvatarFallback>
-                    </Avatar>
-                    <div className="typing-indicator">
-                      <span></span>
-                      <span></span>
-                      <span></span>
-                    </div>
-                  </motion.div>
-                )}
-              </div>
-            </AnimatePresence>
-          </ScrollArea>
-          <div className="px-4 pb-4 mt-2">
-            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center pr-2">
-              <Input
-                value={typing}
-                onChange={(e) => setTyping(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSend()}
-                className="bg-transparent border-none text-gray-800 dark:text-gray-200 placeholder-gray-500 text-base h-12"
-                placeholder={`Message #${activeChannel?.name}`}
-              />
-              <Button
-                onClick={handleSend}
-                variant="ghost"
-                size="icon"
-                className="text-gray-500 dark:text-gray-400 hover:text-green-500 hover:bg-transparent"
-              >
-                <Send />
-              </Button>
-            </div>
-          </div>
-        </div>
+                    </CardContent>
+                );
+            case 'results':
+                let outcomeMessage = "It's a draw! Both debaters presented compelling arguments.";
+                let outcomeIcon = <Megaphone className="h-24 w-24 text-gray-500 mx-auto mb-4" />;
+                let outcomeColor = "text-gray-600 dark:text-gray-300";
 
-        {/* Member List */}
-        <motion.div
-          key={`${activeServerId}-${activeChannelId}-members`}
-          initial={{ x: 100, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          className="w-64 bg-gray-100 dark:bg-gray-800 p-4 flex flex-col shrink-0"
-        >
-          <h3 className="font-bold mb-4 flex items-center uppercase text-sm text-gray-500 dark:text-gray-400 tracking-wide">
-            Members - {membersForActiveChannel.length}
-          </h3>
-          <ScrollArea className="-mx-4 flex-1">
-          <div className="space-y-4 px-4">
-            {membersForActiveChannel.map((member) => (
-              <div
-                key={member.id}
-                className="flex items-center justify-between group"
-              >
-                <div className="flex items-center">
-                  <Avatar className={`h-9 w-9 mr-2 relative`}>
-                    <AvatarImage
-                      src={`https://i.pravatar.cc/40?u=${member.name}`}
-                    />
-                     <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                    <span
-                      className={`bottom-0 left-6 absolute w-3 h-3 ${
-                        member.status === "Online"
-                          ? "bg-green-500"
-                          : "bg-gray-500"
-                      } border-2 border-white dark:border-gray-800 rounded-full`}
-                    ></span>
-                  </Avatar>
-                  <div>
-                    <span
-                      className={`font-semibold ${
-                        member.isOpponent
-                          ? "text-red-400"
-                          : member.isAI
-                          ? "text-blue-400"
-                          : "text-gray-300"
-                      }`}
-                    >
-                      {member.name}
-                    </span>
-                    {member.isAI && !member.isOpponent && (
-                      <span className="text-xs text-yellow-500 ml-1">MOD</span>
-                    )}
-                  </div>
-                </div>
-                <AnimatePresence>
-                  {member.isOpponent && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="text-xs font-bold text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      OPPONENT
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ))}
-          </div>
-          </ScrollArea>
-        </motion.div>
-      </div>
-    </div>
-  );
+                if (playerScore > aiScore) {
+                    outcomeMessage = "You won the debate! Your arguments were more persuasive.";
+                    outcomeIcon = <Trophy className="h-24 w-24 text-yellow-500 mx-auto mb-4" />;
+                    outcomeColor = "text-green-600 dark:text-green-400";
+                } else if (aiScore > playerScore) {
+                    outcomeMessage = "The AI won this round! Time to refine your argumentation skills.";
+                    outcomeIcon = <Brain className="h-24 w-24 text-purple-600 mx-auto mb-4" />;
+                    outcomeColor = "text-red-600 dark:text-red-400";
+                }
+
+                return (
+                    <CardContent className="space-y-6 text-center">
+                        <motion.div
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ type: 'spring', stiffness: 200 }}
+                        >
+                            {outcomeIcon}
+                            <h2 className="text-3xl font-bold mb-2">Debate Over!</h2>
+                            <p className={`text-lg mb-6 ${outcomeColor}`}>{outcomeMessage}</p>
+                        </motion.div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <Card className="p-4 bg-blue-50 dark:bg-blue-900">
+                                <h3 className="font-semibold text-blue-800 dark:text-blue-200">Your Score</h3>
+                                <p className="text-5xl font-bold text-blue-600 dark:text-blue-400">{playerScore}</p>
+                            </Card>
+                            <Card className="p-4 bg-purple-50 dark:bg-purple-900">
+                                <h3 className="font-semibold text-purple-800 dark:text-purple-200">AI's Score</h3>
+                                <p className="text-5xl font-bold text-purple-600 dark:text-purple-400">{aiScore}</p>
+                            </Card>
+                        </div>
+                        <Button onClick={resetDebate} className="w-full debate-button mt-6">
+                            Start New Debate <Sparkles className="ml-2 h-4 w-4" />
+                        </Button>
+                        <Link href="/ai-tutor-page">
+                            <Button variant="outline" className="w-full mt-2">
+                                <ArrowLeft className="mr-2 h-4 w-4" /> Go to AI Tutor
+                            </Button>
+                        </Link>
+                    </CardContent>
+                );
+            default:
+                return null;
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 dark:from-gray-900 dark:to-purple-950 text-gray-900 dark:text-white debate-page-bg">
+            <MinimalHeader title="AI Debate Tool" currentTheme={theme} onThemeChange={setTheme} />
+            <main className="container mx-auto p-4 md:p-8 max-w-4xl">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="debate-card-wrapper"
+                >
+                    <Card className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border border-gray-200 dark:border-gray-700 shadow-xl rounded-2xl p-6 md:p-8">
+                        <CardHeader className="text-center mb-6">
+                            <motion.div
+                                initial={{ scale: 0.8 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: 'spring', stiffness: 200 }}
+                            >
+                                <Brain className="h-16 w-16 text-purple-600 mx-auto mb-4 debate-icon-pulse" />
+                            </motion.div>
+                            <CardTitle className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                                AI Debate Tool
+                            </CardTitle>
+                            <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">Hone your arguments against an AI opponent!</p>
+                        </CardHeader>
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={debateState}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                transition={{ duration: 0.3 }}
+                            >
+                                {isLoading && debateState === 'debating' ? (
+                                    <FunnyLoader />
+                                ) : (
+                                    renderDebateContent()
+                                )}
+                            </motion.div>
+                        </AnimatePresence>
+                    </Card>
+                </motion.div>
+            </main>
+        </div>
+    );
 };
 
 export default DebateToolPage;

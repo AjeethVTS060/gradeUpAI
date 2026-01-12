@@ -18,7 +18,7 @@ import {
   Globe,
   ChevronRight
 } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 
 interface StudentDashboardProps {
   onStartQuiz: () => void;
@@ -26,6 +26,7 @@ interface StudentDashboardProps {
 
 export default function StudentDashboard({ onStartQuiz }: StudentDashboardProps) {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
 
   const { data: stats, isLoading: statsLoading } = useQuery<{
     lessonsCompleted?: number;
@@ -302,9 +303,9 @@ export default function StudentDashboard({ onStartQuiz }: StudentDashboardProps)
                   }`}
                   onClick={() => {
                     if (test.urgency === "high") {
-                      window.location.href = "/courses";
+                      setLocation("/courses");
                     } else {
-                      window.location.href = "/studio/quiz?questions=15&time=20";
+                      setLocation("/studio/quiz?questions=15&time=20");
                     }
                   }}
                 >
@@ -327,7 +328,9 @@ export default function StudentDashboard({ onStartQuiz }: StudentDashboardProps)
         <CardHeader className="pb-2 sm:pb-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base sm:text-lg dark:text-white">Recent Achievements</CardTitle>
-            <Button variant="ghost" size="sm" className="text-xs sm:text-sm dark:text-gray-300 dark:hover:bg-gray-700">View All</Button>
+            <Link href="/profile">
+              <Button variant="ghost" size="sm" className="text-xs sm:text-sm dark:text-gray-300 dark:hover:bg-gray-700">View All</Button>
+            </Link>
           </div>
         </CardHeader>
         <CardContent>

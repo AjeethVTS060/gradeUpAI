@@ -10,6 +10,14 @@ import { cn } from "../../lib/utils";
 import { mockSubjects } from "../../lib/mockData";
 import MinimalHeader from '../../components/minimal-header';
 import { useLocation, Link } from "wouter";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription, 
+  DialogFooter 
+} from "../../components/ui/dialog";
 
 const initialQuizBank = [
     { id: 1, title: 'Algebra Basics', subject: 'Mathematics', subjectId: '1', questions: 15, difficulty: 'Easy', time: 10 },
@@ -226,7 +234,7 @@ const QuizSetupWizard = ({ onStartQuiz, onClose }: { onStartQuiz: (config: QuizC
                              </div>
                         </div>
                         <motion.div whileHover={{ scale: 1.05 }} className='mt-12'>
-                             <Button size='lg' className='w-full h-16 text-xl bg-green-500 hover:bg-green-600' onClick={handleStart}>
+                             <Button size='lg' className='w-full h-16 text-xl bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white' onClick={handleStart}>
                                 <Trophy className='mr-3'/> Launch Quiz!
                             </Button>
                         </motion.div>
@@ -273,7 +281,7 @@ const QuizSetupWizard = ({ onStartQuiz, onClose }: { onStartQuiz: (config: QuizC
 }
 
 
-const QuizPage = () => {
+const QuizPage = ({ params }: { params?: { id?: string } }) => {
     const { theme, setTheme } = useTheme();
     const [location, setLocation] = useLocation();
     const [quizConfig, setQuizConfig] = useState<QuizConfig | null>(null);
@@ -290,8 +298,7 @@ const QuizPage = () => {
     const [showResult, setShowResult] = useState(false);
 
     useEffect(() => {
-        const searchParams = new URLSearchParams(window.location.search);
-        const quizId = searchParams.get('quizId');
+        const quizId = params?.id;
 
         if (quizId) {
             const selectedQuiz = initialQuizBank.find(q => q.id.toString() === quizId);
@@ -310,7 +317,7 @@ const QuizPage = () => {
         } else {
             setIsLoading(false);
         }
-    }, []);
+    }, [params?.id]);
 
     const handleStartQuiz = (config: QuizConfig) => {
         setQuizConfig(config);
@@ -363,7 +370,11 @@ const QuizPage = () => {
     const handleSubmit = () => {
         setShowResult(true);
         const score = userAnswers.reduce((acc, answer, index) => {
-            return answer === dummyQuestions[index].correctAnswer ? acc + 1 : acc;
+            const question = dummyQuestions[index];
+            if (question && question.correctAnswer !== undefined) {
+                return answer === question.correctAnswer ? acc + 1 : acc;
+            }
+            return acc;
         }, 0);
         const percentage = (score / dummyQuestions.length) * 100;
 
@@ -402,56 +413,78 @@ const QuizPage = () => {
         )
     }
 
+    // const navigate = useNavigate(); // Removed as useNavigate is not imported from wouter
+
     if (showResult) {
         const score = userAnswers.reduce((acc, answer, index) => {
-        return answer === dummyQuestions[index].correctAnswer ? acc + 1 : acc;
+            const question = dummyQuestions[index];
+            if (question && question.correctAnswer !== undefined) {
+                return answer === question.correctAnswer ? acc + 1 : acc;
+            }
+            return acc;
         }, 0);
         const percentage = (score / dummyQuestions.length) * 100;
 
         return (
-        <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-900 dark:text-white flex flex-col items-center justify-center p-4 font-sans overflow-hidden">
-            <motion.div 
-                initial={{ opacity: 0, scale: 0.8, y: 100 }} 
-                animate={{ opacity: 1, scale: 1, y: 0 }} 
-                transition={{ duration: 0.7, ease: [0.25, 1, 0.5, 1]}}
-                className="w-full max-w-2xl text-center"
-            >
-            <motion.h1 
-                initial={{y: 20, opacity: 0}} animate={{y:0, opacity: 1}} transition={{delay: 0.2}}
-                className="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-blue-500"
-                >
-                    Quiz Completed!
-                </motion.h1>
-            <motion.p 
-                initial={{y: 20, opacity: 0}} animate={{y:0, opacity: 1}} transition={{delay: 0.3}}
-                className="text-slate-500 dark:text-slate-400 mb-8 text-lg"
-            >
-                You have successfully submitted your answers.
-            </motion.p>
-            <motion.div initial={{y: 20, opacity: 0}} animate={{y:0, opacity: 1}} transition={{delay: 0.4}}>
-                <Card className="bg-slate-100 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 p-8 shadow-2xl dark:shadow-blue-500/20">
-                    <h2 className="text-2xl font-bold mb-4">Your Score</h2>
-                    <div className="text-8xl font-bold text-green-500 dark:text-green-400 mb-2">{percentage.toFixed(0)}%</div>
-                    <p className="text-slate-600 dark:text-slate-300 text-xl">{score} out of {dummyQuestions.length} correct</p>
-                    <Progress value={percentage} className="mt-6 h-4" />
-                </Card>
-            </motion.div>
-            <motion.div initial={{y: 20, opacity: 0}} animate={{y:0, opacity: 1}} transition={{delay: 0.5}}>
-                <Button variant="outline" size="lg" className="mt-10 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-transform hover:scale-105" onClick={restartQuiz}>
-                    <ArrowLeft className="mr-2 h-5 w-5" />
-                    Back to Quiz Bank
-                </Button>
-            </motion.div>
-            </motion.div>
-        </div>
+            <Dialog open={showResult} onOpenChange={setShowResult}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle className="text-center">Quiz Completed!</DialogTitle>
+                        <DialogDescription className="text-center">
+                            You have successfully submitted your answers.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex items-center justify-center mb-4">
+                        <Trophy className="h-16 w-16 text-yellow-500" />
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 text-center">
+                        <Card className="bg-slate-100 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 p-8 shadow-2xl dark:shadow-blue-500/20">
+                            <h2 className="text-2xl font-bold mb-4">Your Score</h2>
+                            <div className="text-8xl font-bold text-green-500 dark:text-green-400 mb-2">{percentage.toFixed(0)}%</div>
+                            <p className="text-slate-600 dark:text-slate-300 text-xl">{score} out of {dummyQuestions.length} correct</p>
+                            <Progress value={percentage} className="mt-6 h-4" />
+                        </Card>
+                    </div>
+                    <DialogFooter className="flex-col gap-2 pt-4">
+                        <Button 
+                            variant="outline" 
+                            size="lg" 
+                            className="w-full" 
+                            onClick={() => {
+                                setShowResult(false);
+                                setQuizStarted(false);
+                                setQuizConfig(null);
+                                setCurrentQuestionIndex(0);
+                                setLocation("/studio/quiz-bank");
+                            }}
+                        >
+                            <ArrowLeft className="mr-2 h-5 w-5" />
+                            Back to Quiz Bank
+                        </Button>
+                        <Button 
+                            size="lg" 
+                            className="w-full bg-blue-600 hover:bg-blue-700" 
+                            onClick={() => {
+                                setShowResult(false);
+                                setQuizStarted(false);
+                                setQuizConfig(null);
+                                setCurrentQuestionIndex(0);
+                                setLocation("/ai-tutor-page");
+                            }}
+                        >
+                            <Brain className="mr-2 h-5 w-5" /> Go to AI Tutor
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         )
     }
-
     if (!quizStarted) {
         return (
           <>
 
             <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col items-center justify-center text-center overflow-hidden relative">
+
                 
                 <AnimatePresence>
                     {isSetupOpen && (
@@ -461,8 +494,7 @@ const QuizPage = () => {
                         />
                     )}
                 </AnimatePresence>
-                <MinimalHeader />
-
+                <MinimalHeader currentTheme={theme} onThemeChange={setTheme} />
                 <motion.div className="mt-2" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
                  
                     <h1 className="text-4xl md:text-6xl font-extrabold text-gray-800 dark:text-white mb-4">Ready for a Challenge?</h1>

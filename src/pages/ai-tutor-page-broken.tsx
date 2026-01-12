@@ -225,7 +225,7 @@ export default function AITutorPage() {
   // Text-to-Speech functionality
   const speakMessage = (text: string) => {
     if (!('speechSynthesis' in window)) {
-      console.log("Speech synthesis not supported");
+      // console.log("Speech synthesis not supported");
       return;
     }
 
@@ -283,7 +283,7 @@ export default function AITutorPage() {
     const file = e.target.files?.[0];
     if (file) {
       // Handle file upload logic here
-      console.log("File uploaded:", file.name);
+      // console.log("File uploaded:", file.name);
     }
   };
 
@@ -313,7 +313,7 @@ export default function AITutorPage() {
 
       recognition.onstart = () => {
         setIsListening(true);
-        console.log('Voice recognition started - speak now');
+        // console.log('Voice recognition started - speak now');
       };
 
       recognition.onresult = (event: any) => {
@@ -325,7 +325,7 @@ export default function AITutorPage() {
         }
         if (transcript.trim()) {
           setMessage(transcript.trim());
-          console.log('Voice input captured:', transcript);
+          // console.log('Voice input captured:', transcript);
         }
       };
 
@@ -355,7 +355,7 @@ export default function AITutorPage() {
 
       recognition.onend = () => {
         setIsListening(false);
-        console.log('Voice recognition ended');
+        // console.log('Voice recognition ended');
       };
 
       recognition.start();

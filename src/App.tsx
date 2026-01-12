@@ -65,7 +65,7 @@ function Router() {
       <ProtectedRoute path="/seminar-tool" component={() => <SeminarToolPage />} />
       <ProtectedRoute path="/debate-tool" component={() => <DebateToolPage />} />
 
-      <ProtectedRoute path="/studio/quiz" component={() => <StudioQuizPage />} />
+      <ProtectedRoute path="/studio/quiz/:id?" component={StudioQuizPage} />
       <ProtectedRoute path="/studio/quiz-bank" component={() => <QuizBankPage />} />
       <ProtectedRoute path="/studio/test-prep" component={() => <TestPrepPage />} />
       <ProtectedRoute path="/studio/qa" component={() => <QAPage />} />

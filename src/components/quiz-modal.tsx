@@ -91,7 +91,7 @@ export default function QuizModal({ onClose }: QuizModalProps) {
 
   const handleSubmitQuiz = () => {
     // Submit quiz logic here
-    console.log("Quiz submitted:", answers);
+    // console.log("Quiz submitted:", answers);
     onClose();
   };
 

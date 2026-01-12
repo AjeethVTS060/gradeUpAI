@@ -273,7 +273,7 @@ export default function CommunityPage() {
   });
 
   const sendMessage = () => {
-    console.log("sendMessage called:", { messageContent, selectedConversation, type: typeof selectedConversation, hasAudio: !!audioBlob });
+    // console.log("sendMessage called:", { messageContent, selectedConversation, type: typeof selectedConversation, hasAudio: !!audioBlob });
     
     // Allow sending if there's text content OR an audio blob
     if ((messageContent.trim() || audioBlob) && selectedConversation) {

@@ -193,7 +193,7 @@ export default function AITutorPage() {
         await audio.play();
         
       } catch (enhancedError) {
-        console.log('Enhanced TTS failed, using browser speech synthesis');
+        // console.log('Enhanced TTS failed, using browser speech synthesis');
         
         // Fallback to browser speech synthesis
         if ('speechSynthesis' in window) {

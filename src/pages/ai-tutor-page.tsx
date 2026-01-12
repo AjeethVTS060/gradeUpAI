@@ -202,7 +202,7 @@ export default function AITutorPage() {
       
       audioContext.close();
       setAudioPermissionGranted(true);
-      console.log('Audio permission granted and tested');
+      // console.log('Audio permission granted and tested');
     } catch (error) {
       console.warn('Audio permission failed:', error);
       setAudioPermissionGranted(true); // Allow fallback attempt
@@ -243,44 +243,7 @@ export default function AITutorPage() {
 
       const updateHighlight = () => {
         if (wordIndex < words.length && isSpeaking && speechActive) {
-          console.log('📝 Highlighting word', wordIndex, ':', words[wordIndex]);
-          setHighlightedWordIndex(wordIndex);
-          wordIndex++;
           
-          // OpenAI TTS timing - much more responsive
-          let wordDelay = 280; // Base timing for OpenAI TTS
-          
-          const currentWord = words[wordIndex - 1] || '';
-          if (currentWord.length > 10) {
-            wordDelay += 60;
-          } else if (currentWord.length < 4) {
-            wordDelay -= 50;
-          }
-          
-          if (currentWord.includes('.') || currentWord.includes('!') || currentWord.includes('?')) {
-            wordDelay += 120;
-          }
-          
-          highlightInterval = setTimeout(updateHighlight, Math.max(100, wordDelay));
-        } else {
-          console.log('🏁 OpenAI TTS highlighting complete');
-          setHighlightedWordIndex(-1);
-        }
-      };
-
-      audio.onplay = () => {
-        console.log('🎵 OpenAI TTS audio started');
-        updateHighlight();
-      };
-
-      audio.onended = () => {
-        console.log('🎵 OpenAI TTS audio ended');
-        setIsSpeaking(false);
-        setSpeechActive(false);
-        setHighlightedWordIndex(-1);
-        if (highlightInterval) clearTimeout(highlightInterval);
-        URL.revokeObjectURL(audioUrl);
-      };
 
       audio.onerror = (error) => {
         console.error('OpenAI TTS audio error:', error);
@@ -332,7 +295,7 @@ export default function AITutorPage() {
       await speakWithOpenAITTS(text);
       return;
     } catch (error) {
-      console.log('OpenAI TTS failed, falling back to browser TTS:', error);
+      // console.log('OpenAI TTS failed, falling back to browser TTS:', error);
       // Fall back to browser TTS
     }
     
@@ -411,7 +374,7 @@ export default function AITutorPage() {
         let startTime: number;
         
         const startHighlighting = () => {
-          console.log('🎯 Starting text highlighting for', words.length, 'words');
+          // console.log('🎯 Starting text highlighting for', words.length, 'words');
           startTime = Date.now();
           wordIndex = 0;
           setHighlightedWordIndex(0); // Start with first word
@@ -421,7 +384,7 @@ export default function AITutorPage() {
             const shouldContinue = wordIndex < words.length && (speechSynthesis.speaking || isSpeaking);
             
             if (shouldContinue) {
-              console.log('📝 Highlighting word', wordIndex, ':', words[wordIndex]);
+              // console.log('📝 Highlighting word', wordIndex, ':', words[wordIndex]);
               setHighlightedWordIndex(wordIndex);
               wordIndex++;
               
@@ -449,7 +412,7 @@ export default function AITutorPage() {
               
               highlightInterval = setTimeout(updateHighlight, Math.max(80, wordDelay));
             } else {
-              console.log('🏁 Highlighting complete - words:', wordIndex, '/', words.length, 'speechSynthesis.speaking:', speechSynthesis.speaking, 'isSpeaking:', isSpeaking);
+              // console.log('🏁 Highlighting complete - words:', wordIndex, '/', words.length, 'speechSynthesis.speaking:', speechSynthesis.speaking, 'isSpeaking:', isSpeaking);
               setHighlightedWordIndex(-1);
             }
           };
@@ -466,15 +429,15 @@ export default function AITutorPage() {
         };
         
         utterance.onstart = () => {
-          console.log('✅ Speech STARTED with voice:', utterance.voice?.name || 'default');
-          console.log('🔊 Voice settings - Rate:', utterance.rate, 'Pitch:', utterance.pitch, 'Volume:', utterance.volume);
+          // console.log('✅ Speech STARTED with voice:', utterance.voice?.name || 'default');
+          // console.log('🔊 Voice settings - Rate:', utterance.rate, 'Pitch:', utterance.pitch, 'Volume:', utterance.volume);
           setCurrentlyReadingText(text); // Set the text being read for highlighting
           setIsSpeaking(true); // Ensure isSpeaking state is true
           startHighlighting();
         };
         
         utterance.onend = () => {
-          console.log('✅ Speech ENDED successfully');
+          // console.log('✅ Speech ENDED successfully');
           setSpeechActive(false);
           setIsSpeaking(false);
           setCurrentlyReadingText('');
@@ -498,23 +461,23 @@ export default function AITutorPage() {
           utterance.volume = 1.0; // Full volume
           
           // Log detailed info for debugging
-          console.log('🎯 Attempting speech with:', {
-            text: finalText.substring(0, 50) + '...',
-            voice: utterance.voice?.name,
-            lang: utterance.lang,
-            rate: utterance.rate,
-            pitch: utterance.pitch,
-            volume: utterance.volume,
-            speechSynthAvailable: 'speechSynthesis' in window,
-            voicesCount: speechSynthesis.getVoices().length,
-            speaking: speechSynthesis.speaking,
-            pending: speechSynthesis.pending,
-            paused: speechSynthesis.paused
-          });
+          // console.log('🎯 Attempting speech with:', {
+          //   text: finalText.substring(0, 50) + '...',
+          //   voice: utterance.voice?.name,
+          //   lang: utterance.lang,
+          //   rate: utterance.rate,
+          //   pitch: utterance.pitch,
+          //   volume: utterance.volume,
+          //   speechSynthAvailable: 'speechSynthesis' in window,
+          //   voicesCount: speechSynthesis.getVoices().length,
+          //   speaking: speechSynthesis.speaking,
+          //   pending: speechSynthesis.pending,
+          //   paused: speechSynthesis.paused
+          // });
           
           // Force ensure voices are loaded
           if (speechSynthesis.getVoices().length === 0) {
-            console.log('⏳ Waiting for voices to load...');
+            // console.log('⏳ Waiting for voices to load...');
             // Force voice loading
             speechSynthesis.getVoices();
             await new Promise(resolve => {
@@ -522,7 +485,7 @@ export default function AITutorPage() {
                 resolve(true);
               } else {
                 speechSynthesis.addEventListener('voiceschanged', () => {
-                  console.log('🔄 Voices loaded:', speechSynthesis.getVoices().length);
+                  // console.log('🔄 Voices loaded:', speechSynthesis.getVoices().length);
                   resolve(true);
                 }, { once: true });
               }
@@ -535,7 +498,7 @@ export default function AITutorPage() {
             await new Promise(resolve => setTimeout(resolve, 50));
           }
           
-          console.log('🚀 Initiating speech synthesis...');
+          // console.log('🚀 Initiating speech synthesis...');
           speechSynthesis.speak(utterance);
           
           // Verify speech actually started
@@ -812,7 +775,7 @@ export default function AITutorPage() {
     const finalVoice = localVoices.length > 0 ? localVoices[0] : preferredVoices[0];
     
     if (finalVoice) {
-      console.log(`Selected voice: ${finalVoice.name} (${finalVoice.lang}) - Local: ${finalVoice.localService}`);
+      // console.log(`Selected voice: ${finalVoice.name} (${finalVoice.lang}) - Local: ${finalVoice.localService}`);
     }
     
     return finalVoice || voices[0];

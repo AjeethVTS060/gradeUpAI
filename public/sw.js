@@ -1,12 +1,12 @@
 // Minimal service worker for local development and PWA
 self.addEventListener('install', (event) => {
   self.skipWaiting();
-  console.log('[SW] installed');
+  // console.log('[SW] installed');
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
-  console.log('[SW] activated');
+  // console.log('[SW] activated');
 });
 
 // Basic fetch handler: try network first, fallback to cache (no cache used here)

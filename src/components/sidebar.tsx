@@ -14,6 +14,7 @@ import {
   Users,
   Flame,
   MessageSquare,
+  MessagesSquare, // Added for Debate Tool
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -80,10 +81,10 @@ export default function Sidebar({ currentRole }: SidebarProps) {
       //   { label: "Create Assignment", href: "/homework/create" },
       // ],
     },
-    { icon: MessageSquare, label: "Community", href: "/debate-tool" },
+    { icon: MessageSquare, label: "Community", href: "/community" },
     { icon: Trophy, label: "Achievements", href: "/progress" },
     { icon: Users, label: "Seminar Tool", href: "/seminar-tool" },
-    { icon: Users, label: "Debate Tool", href: "/debate-tool" },
+    { icon: MessagesSquare, label: "Debate Tool", href: "/debate-tool" },
     {
       icon: Home,
       label: "Exam Windows",
