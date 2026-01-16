@@ -35,11 +35,11 @@ export default function Dashboard() {
         onRoleChange={handleRoleChange}
       />
       
-      <div className="flex">
+      <div className="flex h-[calc(100vh-3.5rem)]">
         <Sidebar currentRole={currentRole} />
         
-        {/* Main Content - Responsive padding */}
-        <main className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8 min-h-[calc(100vh-3.5rem)] sm:min-h-[calc(100vh-4rem)]">
+        {/* Main Content - Responsive padding and scrollable */}
+        <main className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8 overflow-y-auto">
           {currentRole === "student" ? (
             <StudentDashboard onStartQuiz={() => setShowQuizModal(true)} />
           ) : (

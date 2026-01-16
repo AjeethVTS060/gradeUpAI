@@ -77,13 +77,18 @@ export default function ForgotPasswordPage() {
     queryKey: ['/api/captcha/generate'],
     enabled: false,
     queryFn: async () => {
-      const response = await fetch('/api/captcha/generate');
-      if (!response.ok) throw new Error('Failed to generate CAPTCHA');
-      return response.json();
+      // Mock CAPTCHA for USE_MOCK_AUTH = true
+      return {
+        svg: `<svg width="150" height="50" viewBox="0 0 150 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="150" height="50" fill="#F3F4F6"/>
+                <text x="75" y="30" font-family="Arial" font-size="20" fill="#1F2937" text-anchor="middle" dominant-baseline="middle">GRADEUP</text>
+                <line x1="10" y1="15" x2="140" y2="35" stroke="#9CA3AF" stroke-width="1"/>
+                <line x1="10" y1="35" x2="140" y2="15" stroke="#9CA3AF" stroke-width="1"/>
+              </svg>`,
+        sessionId: "mock-session-123",
+      };
     },
-  });
-
-  const loadCaptcha = async () => {
+  }); loadCaptcha = async () => {
     try {
       const result = await generateCaptcha();
       if (result.data) {
@@ -99,13 +104,14 @@ export default function ForgotPasswordPage() {
     }
   };
 
-  // Verify reset token
+  // Verify reset token (Mock Implementation)
   const { data: tokenVerification, isLoading: verifyingToken } = useQuery({
     queryKey: ['/api/reset-password/verify', tokenFromUrl],
     enabled: !!tokenFromUrl,
     queryFn: async () => {
-      const response = await fetch(`/api/reset-password/verify/${tokenFromUrl}`);
-      return response.json();
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+      const MOCK_VALID_TOKEN = "mock-reset-token-123";
+      return { valid: tokenFromUrl === MOCK_VALID_TOKEN };
     },
   });
 
@@ -121,18 +127,26 @@ export default function ForgotPasswordPage() {
 
   const forgotPasswordMutation = useMutation({
     mutationFn: async (data: ForgotPasswordForm) => {
-      return apiRequest('/api/forgot-password', {
-        method: 'POST',
-        body: JSON.stringify({
-          ...data,
-          captchaSessionId: captchaData?.sessionId,
-        }),
-      });
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+
+      // Mock CAPTCHA validation
+      if (data.captchaAnswer !== "GRADEUP") {
+        throw new Error("Incorrect security verification. Please try again.");
+      }
+
+      // Mock email existence check
+      const knownEmails = ["student@example.com", "teacher@example.com", "admin@example.com"];
+      if (!knownEmails.includes(data.email)) {
+        throw new Error("No account found with that email address. (Mock Error)");
+      }
+      
+      // Simulate success
+      return {};
     },
     onSuccess: () => {
       toast({
         title: "Email Sent",
-        description: "If an account with that email exists, you'll receive password reset instructions.",
+        description: "If an account with that email exists, you'll receive password reset instructions. Use token: mock-reset-token-123 and code: 123456",
       });
       forgotForm.reset();
       loadCaptcha();
@@ -149,33 +163,28 @@ export default function ForgotPasswordPage() {
 
   const resetPasswordMutation = useMutation({
     mutationFn: async (data: ResetPasswordForm) => {
-      return apiRequest('/api/reset-password', {
-        method: 'POST',
-        body: JSON.stringify({
-          ...data,
-          captchaSessionId: captchaData?.sessionId,
-        }),
-      });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Password Reset Successful",
-        description: "Your password has been reset. You can now log in with your new password.",
-      });
-      setStep("forgot");
-      resetForm.reset();
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to reset password. Please try again.",
-        variant: "destructive",
-      });
-      loadCaptcha();
-    },
-  });
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
 
-  const onForgotSubmit = async (data: ForgotPasswordForm) => {
+      // Mock CAPTCHA validation
+      if (data.captchaAnswer !== "GRADEUP") {
+        throw new Error("Incorrect security verification. Please try again.");
+      }
+
+      const MOCK_VALID_TOKEN = "mock-reset-token-123";
+      const MOCK_VERIFICATION_CODE = "123456";
+
+      if (data.token !== MOCK_VALID_TOKEN) {
+        throw new Error("Invalid or expired reset token.");
+      }
+      if (data.verificationCode !== MOCK_VERIFICATION_CODE) {
+        throw new Error("Incorrect verification code.");
+      }
+      // Assuming email also matches (though not strictly validated here, frontend ensures it's set)
+
+      // Simulate success
+      return {};
+    },
+  });const onForgotSubmit = async (data: ForgotPasswordForm) => {
     if (!captchaData) {
       toast({
         title: "Error",

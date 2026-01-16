@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../../components/ui/button';
-import { ArrowLeft, Clock, Bookmark, Send, Sun, Moon, Settings, Book, Hash, ChevronRight, Zap, Brain, Flame, FileText, CheckCircle, Rocket, BrainCircuit, Bomb, Sparkles, Trophy } from 'lucide-react';
+import { ArrowLeft, Clock, Bookmark, Send, Sun, Moon, Settings, Book, Hash, ChevronRight, Zap, Brain, Flame, FileText, CheckCircle, Rocket, BrainCircuit, Bomb, Sparkles, Trophy, Menu } from 'lucide-react';
 import { Card, CardContent } from '../../components/ui/card';
 import { Progress } from '../../components/ui/progress';
 import { useTheme } from '../../hooks/use-theme';
 import { Switch } from '../../components/ui/switch';
 import { cn } from "../../lib/utils";
-import { mockSubjects } from "../../lib/mockData";
+import { mockSubjects, mockUnits } from "../../lib/mockData";
 import MinimalHeader from '../../components/minimal-header';
 import { useLocation, Link } from "wouter";
 import { 
@@ -69,20 +69,22 @@ const difficulties = [
 const questionCounts = ["5", "10", "15", "20"];
 const timeLimits = ["5", "10", "15", "30"];
 
-interface Unit {
-  id: number;
-  name: string;
+interface EnrichedUnit {
+    id: string; // e.g., "1-1"
+    name: string; // e.g., "Algebra Basics"
+    subjectName: string; // e.g., "Mathematics"
+    subjectId: string;
 }
 
-const mockUnits: { [key: string]: Unit[] } = {
-  "1": [{ id: 1, name: "Algebra Basics" }, { id: 2, name: "Linear Equations" }],
-  "2": [{ id: 1, name: "Kinematics" }, { id: 2, name: "Dynamics" }],
-  "3": [{ id: 1, name: "Atomic Structure" }, { id: 2, name: "Chemical Bonds" }],
-  "4": [{ id: 1, name: "Cell Biology" }, { id: 2, name: "Genetics" }],
-  "5": [{ id: 1, name: "Shakespeare" }, { id: 2, name: "Modern Poetry" }],
-  "6": [{ id: 1, name: "Ancient Civilizations" }, { id: 2, name: "World War II" }],
-  "7": [{ id: 1, name: "Data Structures" }, { id: 2, name: "Algorithms" }],
-};
+const allUnits: EnrichedUnit[] = mockSubjects.flatMap(subject => {
+    const units = mockUnits[subject.id.toString()] || [];
+    return units.map(unit => ({
+        id: `${subject.id}-${unit.id}`,
+        name: unit.name,
+        subjectName: subject.name,
+        subjectId: subject.id.toString(),
+    }));
+});
 
 const FunnyLoader = () => {
     const messages = [
@@ -134,17 +136,7 @@ const QuizSetupWizard = ({ onStartQuiz, onClose }: { onStartQuiz: (config: QuizC
     const [config, setConfig] = useState<QuizConfig>({
         difficulty: "Medium", subjectId: "", unitId: "", numQuestions: "10", timeLimit: "10",
     });
-    const [units, setUnits] = useState<Unit[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-
-    useEffect(() => {
-        if (config.subjectId) {
-            setUnits(mockUnits[config.subjectId] || []);
-            setConfig(c => ({ ...c, unitId: "" }));
-        } else {
-            setUnits([]);
-        }
-    }, [config.subjectId]);
 
     const handleStart = () => {
         setIsLoading(true);
@@ -177,40 +169,24 @@ const QuizSetupWizard = ({ onStartQuiz, onClose }: { onStartQuiz: (config: QuizC
                         </div>
                     </div>
                 );
-            case 1: // Subject
-                return (
+            case 1: // Unit
+                return (    
                     <div className='text-center'>
-                        <h2 className="text-3xl font-bold mb-4">What's Your Subject?</h2>
-                        <p className='text-slate-500 mb-10'>Pick a subject to test your skills.</p>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {mockSubjects.map((s) => (
-                                <motion.div key={s.id} whileHover={{ y: -5, scale: 1.05 }} className='cursor-pointer' onClick={() => { setConfig({ ...config, subjectId: s.id.toString() }); nextStep(); }}>
-                                    <Card className={cn("p-6 text-center transition-all duration-300 flex flex-col items-center justify-center h-32", config.subjectId === s.id.toString() ? 'bg-blue-500 text-white' : 'bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700')}>
-                                        <div className='text-3xl mb-2'>{s.icon}</div>
-                                        <h3 className="font-semibold">{s.name}</h3>
-                                    </Card>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </div>
-                );
-            case 2: // Unit
-                return (
-                    <div className='text-center'>
-                        <h2 className="text-3xl font-bold mb-4">Narrow It Down</h2>
+                        <h2 className="text-3xl font-bold mb-4">What do you want to practice?</h2>
                         <p className='text-slate-500 mb-10'>Choose a specific unit.</p>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            {units.map((u) => (
-                                <motion.div key={u.id} whileHover={{ y: -5, scale: 1.05 }} className='cursor-pointer' onClick={() => { setConfig({ ...config, unitId: u.id.toString() }); nextStep(); }}>
-                                    <Card className={cn("p-6 text-center transition-all duration-300 flex items-center justify-center h-24", config.unitId === u.id.toString() ? 'bg-blue-500 text-white' : 'bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700')}>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {allUnits.map((u) => (
+                                <motion.div key={u.id} whileHover={{ y: -5, scale: 1.05 }} className='cursor-pointer' onClick={() => { setConfig({ ...config, unitId: u.id, subjectId: u.subjectId }); nextStep(); }}>
+                                    <Card className={cn("p-6 text-center transition-all duration-300 flex flex-col items-center justify-center h-32", config.unitId === u.id ? 'bg-blue-500 text-white' : 'bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700')}>
                                         <h3 className="font-semibold">{u.name}</h3>
+                                        <p className="text-sm opacity-70 mt-1">{u.subjectName}</p>
                                     </Card>
                                 </motion.div>
                             ))}
                         </div>
                     </div>
                 );
-            case 3: // Questions & Time
+            case 2: // Questions & Time
                 return (
                      <div className='text-center max-w-lg mx-auto'>
                         <h2 className="text-3xl font-bold mb-4">Final Touches</h2>
@@ -281,11 +257,95 @@ const QuizSetupWizard = ({ onStartQuiz, onClose }: { onStartQuiz: (config: QuizC
 }
 
 
+const QuizSidebarContent = ({ 
+    closeSidebar,
+    theme,
+    setTheme,
+    currentQuestionIndex,
+    questionStatuses,
+    dummyQuestions,
+    jumpToQuestion,
+    handleMarkForLater,
+    setCurrentQuestionIndex,
+}: { 
+    closeSidebar?: () => void,
+    theme: string | undefined,
+    setTheme: (theme: string) => void,
+    currentQuestionIndex: number,
+    questionStatuses: QuestionStatus[],
+    dummyQuestions: typeof allDummyQuestions,
+    jumpToQuestion: (index: number) => void,
+    handleMarkForLater: () => void,
+    setCurrentQuestionIndex: React.Dispatch<React.SetStateAction<number>>,
+}) => {
+    
+    return (
+        <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 h-full">
+            <CardContent className="p-4 sm:p-6 flex flex-col h-full">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-lg">Question Palette</h3>
+                {closeSidebar && (
+                    <Button variant="ghost" size="icon" onClick={closeSidebar}>
+                        <ChevronRight className="h-5 w-5" />
+                    </Button>
+                )}
+            </div>
+            <div className="grid grid-cols-5 gap-2 mb-6">
+                {dummyQuestions.map((_, index) => {
+                const status = questionStatuses[index] || 'unanswered';
+                const isCurrent = index === currentQuestionIndex;
+                return (
+                    <button
+                    key={index}
+                    onClick={() => jumpToQuestion(index)}
+                    className={`h-10 w-10 sm:h-12 sm:w-12 rounded-md flex items-center justify-center font-bold text-base sm:text-lg transition-all
+                        ${isCurrent ? 'ring-2 ring-blue-500 dark:ring-blue-400' : ''}
+                        ${status === 'answered' ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-300' : ''}
+                        ${status === 'unanswered' ? 'bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600' : ''}
+                        ${status === 'marked' ? 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300' : ''}
+                    `}
+                    >
+                    {index + 1}
+                    </button>
+                )
+                })}
+            </div>
+            <div className="space-y-2 text-sm text-slate-500 dark:text-slate-400 mb-6">
+                <div className="flex items-center"><div className="w-4 h-4 rounded-full bg-green-100 dark:bg-green-500/20 mr-2"></div> Answered</div>
+                <div className="flex items-center"><div className="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-700 mr-2"></div> Not Answered</div>
+                <div className="flex items-center"><div className="w-4 h-4 rounded-full bg-yellow-100 dark:bg-yellow-500/20 mr-2"></div> Marked for Later</div>
+            </div>
+            
+            <div className="mt-auto space-y-4">
+                <Button variant="outline" className="w-full bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 hidden md:flex" onClick={handleMarkForLater}>
+                <Bookmark className="mr-2 h-4 w-4" />
+                Mark for Later
+                </Button>
+                <div className="hidden md:flex gap-4">
+                    <Button variant="secondary" className="w-full" onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))} disabled={currentQuestionIndex === 0}>Previous</Button>
+                    <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={() => setCurrentQuestionIndex(prev => Math.min(dummyQuestions.length - 1, prev + 1))} disabled={currentQuestionIndex === dummyQuestions.length - 1}>Next</Button>
+                </div>
+                <div className="flex items-center justify-center gap-2 pt-4">
+                    <Sun className="h-5 w-5" />
+                    <Switch
+                        checked={theme === 'dark'}
+                        onCheckedChange={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                    />
+                    <Moon className="h-5 w-5" />
+                </div>
+            </div>
+
+            </CardContent>
+        </Card>
+    );
+}
+
 const QuizPage = ({ params }: { params?: { id?: string } }) => {
     const { theme, setTheme } = useTheme();
     const [location, setLocation] = useLocation();
     const [quizConfig, setQuizConfig] = useState<QuizConfig | null>(null);
     const [isSetupOpen, setIsSetupOpen] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [quizStarted, setQuizStarted] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     
@@ -516,129 +576,133 @@ const QuizPage = ({ params }: { params?: { id?: string } }) => {
     }
 
     const currentQuestion = dummyQuestions[currentQuestionIndex];
+    
+    const sidebarProps = {
+        theme,
+        setTheme,
+        currentQuestionIndex,
+        questionStatuses,
+        dummyQuestions,
+        jumpToQuestion,
+        handleMarkForLater,
+        setCurrentQuestionIndex,
+    };
 
     return (
-        <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-900 dark:text-white flex flex-col items-center justify-center p-4 font-sans">
+        <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-900 dark:text-white flex flex-col items-center p-2 sm:p-4 font-sans">
         <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-6xl grid grid-cols-12 gap-8"
+            className="w-full max-w-7xl"
         >
-            {/* Main Content */}
-            <div className="col-span-12 lg:col-span-8">
-            <header className="flex justify-between items-center mb-8">
+            {/* Header */}
+            <header className="flex justify-between items-center mb-4 sm:mb-8 p-2 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
                 <Link href="/studio/quiz-bank">
-                    <Button variant="outline" className="bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700">
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Back to Quiz Bank
+                    <Button variant="outline" size="sm" className="bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700">
+                        <ArrowLeft className="mr-1 h-4 w-4" />
+                        <span className="hidden sm:inline">Back</span>
                     </Button>
                 </Link>
-                <div className="flex items-center gap-4 p-2 px-4 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                <Clock className="h-5 w-5 text-blue-500 dark:text-blue-400" />
-                <span className="font-mono text-lg">{Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}</span>
+                <div className="flex items-center gap-2 sm:gap-4 p-2 px-3 sm:px-4 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <Clock className="h-5 w-5 text-blue-500 dark:text-blue-400" />
+                    <span className="font-mono text-base sm:text-lg">{Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}</span>
                 </div>
-                <div className="flex items-center gap-4">
-                <Sun className="h-5 w-5" />
-                <Switch
-                    checked={theme === 'dark'}
-                    onCheckedChange={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-                />
-                <Moon className="h-5 w-5" />
-                </div>
-                <Button variant="destructive" onClick={handleSubmit}>
-                <Send className="mr-2 h-4 w-4" />
-                Submit
-                </Button>
-            </header>
-    
-            <main className="bg-white dark:bg-slate-800/50 p-8 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl dark:shadow-blue-500/10">
-                <AnimatePresence mode="wait">
-                <motion.div
-                    key={currentQuestionIndex}
-                    initial={{ opacity: 0, x: 50 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -50 }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <div className="mb-8">
-                    <p className="text-blue-600 dark:text-blue-400 font-semibold mb-2">Question {currentQuestionIndex + 1} of {dummyQuestions.length}</p>
-                    <h2 className="text-2xl md:text-3xl font-bold">
-                        {currentQuestion.question}
-                    </h2>
+                <div className="flex items-center gap-2 sm:gap-4">
+                    <div className="hidden sm:flex items-center gap-2">
+                        <Sun className="h-5 w-5" />
+                        <Switch
+                            checked={theme === 'dark'}
+                            onCheckedChange={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                        />
+                        <Moon className="h-5 w-5" />
                     </div>
-    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {currentQuestion.options.map((option, index) => (
-                        <motion.button 
-                        key={index}
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => handleAnswerSelect(index)}
-                        className={`p-5 rounded-lg text-left text-base md:text-lg border transition-all duration-200 flex items-start
-                            ${userAnswers[currentQuestionIndex] === index
-                            ? 'bg-blue-500 dark:bg-blue-600 border-blue-500 text-white'
-                            : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700/50 hover:border-blue-500 dark:hover:border-blue-500'
-                            }
-                        `}
-                        >
-                        <span className="font-semibold mr-4">{String.fromCharCode(65 + index)}.</span>
-                        <span>{option}</span>
-                        </motion.button>
-                    ))}
-                    </div>
-                </motion.div>
-                </AnimatePresence>
-            </main>
-            </div>
-    
-            {/* Right Sidebar */}
-            <div className="col-span-12 lg:col-span-4">
-            <Card className="bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 h-full">
-                <CardContent className="p-6 flex flex-col h-full">
-                <h3 className="font-bold text-lg mb-4">Question Palette</h3>
-                <div className="grid grid-cols-5 gap-2 mb-6">
-                    {dummyQuestions.map((_, index) => {
-                    const status = questionStatuses[index];
-                    const isCurrent = index === currentQuestionIndex;
-                    return (
-                        <button
-                        key={index}
-                        onClick={() => jumpToQuestion(index)}
-                        className={`h-12 w-12 rounded-md flex items-center justify-center font-bold text-lg transition-all
-                            ${isCurrent ? 'ring-2 ring-blue-500 dark:ring-blue-400' : ''}
-                            ${status === 'answered' ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-300' : ''}
-                            ${status === 'unanswered' ? 'bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600' : ''}
-                            ${status === 'marked' ? 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300' : ''}
-                        `}
-                        >
-                        {index + 1}
-                        </button>
-                    )
-                    })}
-                </div>
-                <div className="space-y-2 text-sm text-slate-500 dark:text-slate-400 mb-6">
-                    <div className="flex items-center"><div className="w-4 h-4 rounded-full bg-green-100 dark:bg-green-500/20 mr-2"></div> Answered</div>
-                    <div className="flex items-center"><div className="w-4 h-4 rounded-full bg-slate-200 dark:bg-slate-700 mr-2"></div> Not Answered</div>
-                    <div className="flex items-center"><div className="w-4 h-4 rounded-full bg-yellow-100 dark:bg-yellow-500/20 mr-2"></div> Marked for Later</div>
-                </div>
-                
-                <div className="mt-auto space-y-4">
-                    <Button variant="outline" className="w-full bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700" onClick={handleMarkForLater}>
-                    <Bookmark className="mr-2 h-4 w-4" />
-                    Mark for Later
+                    <Button variant="destructive" size="sm" onClick={handleSubmit}>
+                        <Send className="mr-1 h-4 w-4" />
+                        <span className="hidden sm:inline">Submit</span>
                     </Button>
-                    <div className="flex gap-4">
-                        <Button variant="secondary" className="w-full" onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))} disabled={currentQuestionIndex === 0}>Previous</Button>
-                        <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={() => setCurrentQuestionIndex(prev => Math.min(dummyQuestions.length - 1, prev + 1))} disabled={currentQuestionIndex === dummyQuestions.length - 1}>Next</Button>
+                    <Button variant="outline" className="md:hidden" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+                        <Menu className="h-5 w-5" />
+                    </Button>
+                </div>
+            </header>
+
+            <div className="flex gap-8">
+                {/* Main Content */}
+                <div className="flex-1">
+                    <main className="bg-white dark:bg-slate-800/50 p-4 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl dark:shadow-blue-500/10">
+                        <AnimatePresence mode="wait">
+                        <motion.div
+                            key={currentQuestionIndex}
+                            initial={{ opacity: 0, x: 50 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -50 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            <div className="mb-6 sm:mb-8">
+                            <p className="text-blue-600 dark:text-blue-400 font-semibold mb-2 text-sm sm:text-base">Question {currentQuestionIndex + 1} of {dummyQuestions.length}</p>
+                            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold">
+                                {currentQuestion.question}
+                            </h2>
+                            </div>
+            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                            {currentQuestion.options.map((option, index) => (
+                                <motion.button 
+                                key={index}
+                                whileHover={{ scale: 1.03 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => handleAnswerSelect(index)}
+                                className={`p-4 sm:p-5 rounded-lg text-left text-sm sm:text-lg border transition-all duration-200 flex items-start
+                                    ${userAnswers[currentQuestionIndex] === index
+                                    ? 'bg-blue-500 dark:bg-blue-600 border-blue-500 text-white'
+                                    : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700/50 hover:border-blue-500 dark:hover:border-blue-500'
+                                    }
+                                `}
+                                >
+                                <span className="font-semibold mr-3 sm:mr-4">{String.fromCharCode(65 + index)}.</span>
+                                <span>{option}</span>
+                                </motion.button>
+                            ))}
+                            </div>
+                        </motion.div>
+                        </AnimatePresence>
+                    </main>
+                    <div className="mt-4 space-y-4 md:hidden">
+                        <Button variant="outline" className="w-full bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700" onClick={handleMarkForLater}>
+                            <Bookmark className="mr-2 h-4 w-4" />
+                            Mark for Later
+                        </Button>
+                        <div className="flex gap-4">
+                            <Button variant="secondary" className="w-full" onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))} disabled={currentQuestionIndex === 0}>Previous</Button>
+                            <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={() => setCurrentQuestionIndex(prev => Math.min(dummyQuestions.length - 1, prev + 1))} disabled={currentQuestionIndex === dummyQuestions.length - 1}>Next</Button>
+                        </div>
                     </div>
                 </div>
-    
-                </CardContent>
-            </Card>
+        
+                {/* Right Sidebar */}
+                <AnimatePresence>
+                    {isSidebarOpen && (
+                        <motion.div
+                            initial={{ x: '100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '100%' }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                            className="fixed top-0 right-0 h-full w-full max-w-xs bg-white dark:bg-slate-900 z-50 md:hidden"
+                        >
+                            <QuizSidebarContent {...sidebarProps} closeSidebar={() => setIsSidebarOpen(false)} />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                <div className="hidden md:block w-full max-w-sm">
+                    <QuizSidebarContent {...sidebarProps} />
+                </div>
             </div>
         </motion.div>
         </div>
     );
 };
+
+
 
 export default QuizPage;

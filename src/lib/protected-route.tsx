@@ -1,6 +1,6 @@
 import { useAuth } from "../hooks/use-auth";
-import { Loader2 } from "lucide-react";
 import { Redirect, Route } from "wouter";
+import FunnyLoader from "../components/ui/FunnyLoader";
 
 export function ProtectedRoute({
   path,
@@ -14,12 +14,7 @@ export function ProtectedRoute({
   if (isLoading) {
     return (
       <Route path={path}>
-        <div className="flex items-center justify-center min-h-screen bg-gray-50">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
-            <p className="text-gray-600">Loading...</p>
-          </div>
-        </div>
+        <FunnyLoader />
       </Route>
     );
   }

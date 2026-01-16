@@ -17,7 +17,7 @@ import { Link } from "wouter";
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const { toast } = useToast();
   const [loginForm, setLoginForm] = useState({ email: "", password: "", captchaAnswer: "" });
   const [registerForm, setRegisterForm] = useState({
@@ -56,9 +56,16 @@ export default function AuthPage() {
     queryKey: ['/api/captcha/generate'],
     enabled: false,
     queryFn: async () => {
-      const response = await fetch('/api/captcha/generate');
-      if (!response.ok) throw new Error('Failed to generate CAPTCHA');
-      return response.json();
+      // Mock CAPTCHA for USE_MOCK_AUTH = true
+      return {
+        svg: `<svg width="150" height="50" viewBox="0 0 150 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="150" height="50" fill="#F3F4F6"/>
+                <text x="75" y="30" font-family="Arial" font-size="20" fill="#1F2937" text-anchor="middle" dominant-baseline="middle">GRADEUP</text>
+                <line x1="10" y1="15" x2="140" y2="35" stroke="#9CA3AF" stroke-width="1"/>
+                <line x1="10" y1="35" x2="140" y2="15" stroke="#9CA3AF" stroke-width="1"/>
+              </svg>`,
+        sessionId: "mock-session-123",
+      };
     },
   });
 
@@ -84,9 +91,7 @@ export default function AuthPage() {
     }
   }, [requiresCaptcha]);
 
-  if (user) {
-    return <Redirect to="/dashboard" />;
-  }
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,8 +108,7 @@ export default function AuthPage() {
       // Prefer using the loginMutation provided by `useAuth` (supports mock auth).
       try {
         await loginMutation.mutateAsync(loginData as any);
-        // success -> reload to pick up auth state
-        window.location.reload();
+        navigate('/dashboard'); // Navigate to dashboard on successful login
       } catch (err: any) {
         // If server returned captcha requirement, handle it; otherwise show generic error.
         const result = err?.response || err;
@@ -253,7 +257,10 @@ export default function AuthPage() {
                     <Button
                       variant="outline"
                       className="w-full h-10 sm:h-11 text-sm"
-                      onClick={() => window.location.href = '/api/auth/google'}
+                      onClick={async () => {
+                        await loginMutation.mutateAsync({ email: "student@example.com", password: "password123" });
+                        navigate('/dashboard');
+                      }}
                       data-testid="button-google-login"
                     >
                       <FaGoogle className="mr-2 h-4 w-4 text-red-500" />
@@ -264,7 +271,10 @@ export default function AuthPage() {
                     <Button
                       variant="outline"
                       className="w-full h-10 sm:h-11 text-sm"
-                      onClick={() => window.location.href = '/api/auth/microsoft'}
+                      onClick={async () => {
+                        await loginMutation.mutateAsync({ email: "teacher@example.com", password: "password123" });
+                        navigate('/dashboard');
+                      }}
                       data-testid="button-microsoft-login"
                     >
                       <FaMicrosoft className="mr-2 h-4 w-4 text-blue-500" />

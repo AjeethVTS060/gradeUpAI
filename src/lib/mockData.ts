@@ -36,6 +36,21 @@ export const mockSubjects = [
   { id: 7, name: "Computer Science", description: "Programming and algorithms" },
 ];
 
+interface Unit {
+  id: number;
+  name: string;
+}
+
+export const mockUnits: { [key: string]: Unit[] } = {
+  "1": [{ id: 1, name: "Algebra Basics" }, { id: 2, name: "Linear Equations" }],
+  "2": [{ id: 1, name: "Kinematics" }, { id: 2, name: "Dynamics" }],
+  "3": [{ id: 1, name: "Atomic Structure" }, { id: 2, name: "Chemical Bonds" }],
+  "4": [{ id: 1, name: "Cell Biology" }, { id: 2, name: "Genetics" }],
+  "5": [{ id: 1, name: "Shakespeare" }, { id: 2, name: "Modern Poetry" }],
+  "6": [{ id: 1, name: "Ancient Civilizations" }, { id: 2, name: "World War II" }],
+  "7": [{ id: 1, name: "Data Structures" }, { id: 2, name: "Algorithms" }],
+};
+
 export const mockCourses = [
   {
     id: 1,

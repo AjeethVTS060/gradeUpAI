@@ -124,7 +124,7 @@ const QAPage = () => {
                     Back to Studio
                 </Button>
             </Link>
-            <h1 className="text-3xl font-bold flex items-center gap-3 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-500">
+            <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-500 order-first sm:order-none w-full sm:w-auto text-center justify-center">
                 <HelpCircle />
                 Q&A Forum
             </h1>
@@ -141,7 +141,7 @@ const QAPage = () => {
                 </Button>
                 <Button className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 transition-all duration-300 transform hover:scale-105" onClick={() => setAskModalOpen(true)}>
                     <MessageSquarePlus className="mr-2 h-4 w-4" />
-                    Ask Question
+                    <span className="hidden sm:inline">Ask Question</span>
                 </Button>
             </div>
         </header>
@@ -178,14 +178,14 @@ const QAPage = () => {
                         </Avatar>
                         <span className="text-sm font-semibold">{item.author}</span>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <Button variant="ghost" size="icon" className="flex items-center gap-2 hover:text-green-500 hover:bg-green-500/10" onClick={() => handleVote(item.id, 'like')}>
-                          <ThumbsUp className="h-5 w-5" />
-                          <span className="text-sm font-bold">{item.likes}</span>
+                      <div className="flex items-center gap-1 sm:gap-4">
+                        <Button variant="ghost" size="sm" className="flex items-center gap-2 hover:text-green-500 hover:bg-green-500/10" onClick={() => handleVote(item.id, 'like')}>
+                          <ThumbsUp className="h-4 w-4 sm:h-5 sm:w-5" />
+                          <span className="text-xs sm:text-sm font-bold">{item.likes}</span>
                         </Button>
-                        <Button variant="ghost" size="icon" className="flex items-center gap-2 hover:text-red-500 hover:bg-red-500/10" onClick={() => handleVote(item.id, 'dislike')}>
-                          <ThumbsDown className="h-5 w-5" />
-                           <span className="text-sm font-bold">{item.dislikes}</span>
+                        <Button variant="ghost" size="sm" className="flex items-center gap-2 hover:text-red-500 hover:bg-red-500/10" onClick={() => handleVote(item.id, 'dislike')}>
+                          <ThumbsDown className="h-4 w-4 sm:h-5 sm:w-5" />
+                           <span className="text-xs sm:text-sm font-bold">{item.dislikes}</span>
                         </Button>
                       </div>
                     </CardFooter>

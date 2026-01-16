@@ -48,6 +48,7 @@ interface Question {
   options?: string[];
   correctAnswer?: string;
   subject: string;
+  unit?: string; // Added unit property
   difficulty: 'easy' | 'medium' | 'hard';
   explanation?: string;
 }
@@ -71,6 +72,7 @@ const dummyQuestions: Question[] = [
         options: ["Nucleus", "Ribosome", "Mitochondria", "Chloroplast"],
         correctAnswer: "Mitochondria",
         subject: "Biology",
+        unit: "Cell Biology",
         difficulty: 'easy',
         explanation: "Mitochondria are responsible for generating most of the cell's supply of adenosine triphosphate (ATP), used as a source of chemical energy."
     },
@@ -81,6 +83,7 @@ const dummyQuestions: Question[] = [
         options: ["3", "4", "5", "6"],
         correctAnswer: "4",
         subject: "Mathematics",
+        unit: "Algebra Basics",
         difficulty: 'easy',
         explanation: "Subtract 3 from both sides to get 2x = 8, then divide by 2 to get x = 4."
     },
@@ -90,7 +93,8 @@ const dummyQuestions: Question[] = [
         type: 'mcq',
         options: ["Harper Lee", "J.K. Rowling", "Ernest Hemingway", "Mark Twain"],
         correctAnswer: "Harper Lee",
-        subject: "English",
+        subject: "English Literature",
+        unit: "Shakespeare", // Assuming a general unit for literature
         difficulty: 'medium',
         explanation: "Harper Lee's 'To Kill a Mockingbird' was published in 1960 and became an instant classic of American literature."
     },
@@ -101,6 +105,7 @@ const dummyQuestions: Question[] = [
         options: ["Ag", "Go", "Au", "Gd"],
         correctAnswer: "Au",
         subject: "Chemistry",
+        unit: "Atomic Structure",
         difficulty: 'easy',
         explanation: "The symbol Au comes from the Latin word for gold, 'aurum'."
     },
@@ -109,6 +114,7 @@ const dummyQuestions: Question[] = [
         text: "Explain the theory of relativity in your own words.",
         type: 'verbal',
         subject: "Physics",
+        unit: "Kinematics", // General unit for physics
         difficulty: 'hard',
         explanation: "Einstein's theory of relativity is split into special and general relativity. Special relativity deals with the relationship between space and time for objects moving at constant speeds. General relativity is a theory of gravitation."
     },
@@ -119,6 +125,7 @@ const dummyQuestions: Question[] = [
         options: ["1905", "1912", "1918", "1923"],
         correctAnswer: "1912",
         subject: "History",
+        unit: "Ancient Civilizations", // General unit for history
         difficulty: 'medium',
         explanation: "The RMS Titanic sank in the early morning hours of 15 April 1912 in the North Atlantic Ocean."
     },
@@ -129,6 +136,7 @@ const dummyQuestions: Question[] = [
         options: ["Earth", "Mars", "Jupiter", "Saturn"],
         correctAnswer: "Jupiter",
         subject: "Physics",
+        unit: "Dynamics", // General unit for physics
         difficulty: 'easy',
         explanation: "Jupiter is the fifth planet from the Sun and the largest in the Solar System. It is a gas giant with a mass more than two and a half times that of all the other planets in the Solar System combined."
     },
@@ -137,6 +145,7 @@ const dummyQuestions: Question[] = [
         text: "Describe the process of photosynthesis.",
         type: 'verbal',
         subject: "Biology",
+        unit: "Genetics", // General unit for biology
         difficulty: 'hard',
         explanation: "Photosynthesis is a process used by plants, algae, and certain bacteria to convert light energy into chemical energy, through a process that converts carbon dioxide and water into glucose (sugar) and oxygen."
     },
@@ -147,6 +156,7 @@ const dummyQuestions: Question[] = [
         options: ["Kyoto", "Osaka", "Tokyo", "Hiroshima"],
         correctAnswer: "Tokyo",
         subject: "History",
+        unit: "World War II", // General unit for history
         difficulty: 'easy',
         explanation: "Tokyo is the capital and largest city of Japan."
     },
@@ -157,6 +167,7 @@ const dummyQuestions: Question[] = [
         options: ["Thomas Edison", "Nikola Tesla", "Alexander Graham Bell", "Guglielmo Marconi"],
         correctAnswer: "Alexander Graham Bell",
         subject: "History",
+        unit: "Ancient Civilizations", // General unit for history
         difficulty: 'medium',
         explanation: "Alexander Graham Bell is widely credited with patenting the first practical telephone."
     }
@@ -180,6 +191,24 @@ export default function QuizPage() {
   const audioChunksRef = useRef<Blob[]>([]);
   const speechSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
 
+  const [quizSubject, setQuizSubject] = useState<string>(() => {
+    return localStorage.getItem("ai-tutor-selected-subject") || "all";
+  });
+  const [quizUnit, setQuizUnit] = useState<string>(() => {
+    return localStorage.getItem("ai-tutor-selected-unit") || "";
+  });
+
+  useEffect(() => {
+    const storedSubject = localStorage.getItem("ai-tutor-selected-subject");
+    const storedUnit = localStorage.getItem("ai-tutor-selected-unit");
+    if (storedSubject) {
+      setQuizSubject(storedSubject);
+    }
+    if (storedUnit) {
+      setQuizUnit(storedUnit);
+    }
+  }, []);
+
   const { data: subjects } = useQuery({
     queryKey: ["/api/subjects"],
   });
@@ -199,13 +228,36 @@ export default function QuizPage() {
   });
 
   const startExamMutation = useMutation({
-    mutationFn: async (config: { subject: string; questionCount: number; duration: number; type: string }) => {
-      // In a real app, you'd fetch questions from an API based on the config.
-      // Here, we'll just use the dummy questions.
-      await new Promise(res => setTimeout(res, 500)); // Simulate API delay
+    mutationFn: async (config: { subject: string; unit?: string; questionCount: number; duration: number; type: string }) => {
+      // Simulate API delay
+      await new Promise(res => setTimeout(res, 500)); 
+
+      let filteredQuestions = dummyQuestions;
+
+      if (config.subject && config.subject !== "all") {
+        filteredQuestions = filteredQuestions.filter(q => q.subject.toLowerCase() === config.subject.toLowerCase());
+      }
+      if (config.unit) {
+        filteredQuestions = filteredQuestions.filter(q => q.unit?.toLowerCase() === config.unit.toLowerCase());
+      }
+
+      // If no questions match, or if too few, provide a fallback or error.
+      if (filteredQuestions.length === 0) {
+        // Fallback to general questions if no specific questions match
+        filteredQuestions = dummyQuestions.filter(q => q.subject.toLowerCase() === "mathematics"); // Example fallback
+        if (filteredQuestions.length === 0) {
+            throw new Error("No questions found for the selected subject and unit.");
+        }
+      }
+
+      // Randomly select `questionCount` questions from the filtered list
+      const selectedQuestions = filteredQuestions
+        .sort(() => 0.5 - Math.random()) // Shuffle
+        .slice(0, config.questionCount); // Take first 'questionCount'
+
       return {
           id: `session-${Date.now()}`,
-          questions: dummyQuestions,
+          questions: selectedQuestions,
           currentIndex: 0,
           answers: {},
           markedForReview: {},
@@ -583,27 +635,37 @@ export default function QuizPage() {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {availableSubjects.map((subject: any, i) => (
-                                        <motion.div key={subject.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
-                                            <Button
-                                                variant="outline"
-                                                className="w-full h-32 flex flex-col items-center justify-center p-4 text-center hover:bg-primary/5 hover:border-primary transition-colors dark:hover:bg-primary/10"
-                                                onClick={() => startExamMutation.mutate({
-                                                    subject: subject.name,
-                                                    questionCount: 10,
-                                                    duration: 15,
-                                                    type: 'mixed'
-                                                })}
-                                                disabled={startExamMutation.isPending}
-                                            >
-                                                <BookOpen className="h-8 w-8 mb-2 text-primary" />
-                                                <span className="font-semibold">{subject.name}</span>
-                                                <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">10 Qs • 15 min</span>
-                                            </Button>
-                                        </motion.div>
-                                    ))}
-                                </div>
+                                {quizSubject !== "all" || quizUnit ? (
+                                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                                        <div className="text-center mb-4">
+                                            <p className="text-lg font-semibold">Ready to quiz on:</p>
+                                            <p className="text-xl font-bold text-primary">
+                                                {quizSubject !== "all" && quizSubject ? quizSubject.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Any Subject'}
+                                                {quizUnit && ` - ${quizUnit}`}
+                                            </p>
+                                        </div>
+                                        <Button
+                                            className="w-full h-32 flex flex-col items-center justify-center p-4 text-center text-lg font-bold"
+                                            onClick={() => startExamMutation.mutate({
+                                                subject: quizSubject,
+                                                unit: quizUnit, // Pass the selected unit
+                                                questionCount: 10,
+                                                duration: 15,
+                                                type: 'mixed'
+                                            })}
+                                            disabled={startExamMutation.isPending}
+                                        >
+                                            <BookOpen className="h-10 w-10 mb-2" />
+                                            <span>Start Quiz</span>
+                                            <span className="text-xs mt-1">10 Qs • 15 min</span>
+                                        </Button>
+                                    </motion.div>
+                                ) : (
+                                    <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+                                        <p className="mb-2">No specific subject or unit selected from AI Tutor.</p>
+                                        <p>Please select a subject and unit in the AI Tutor section to start a contextual quiz.</p>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </div>
@@ -735,7 +797,7 @@ export default function QuizPage() {
                 </div>
             </div>
         </main>
-        <aside className="w-1/4 min-w-[280px] border-l dark:border-gray-700 bg-white dark:bg-gray-800 overflow-y-auto p-4 lg:block">
+        <aside className="hidden w-1/4 min-w-[280px] border-l dark:border-gray-700 bg-white dark:bg-gray-800 overflow-y-auto p-4 lg:block">
             <QuizSidebar
                 questions={examSession.questions}
                 currentIndex={examSession.currentIndex}

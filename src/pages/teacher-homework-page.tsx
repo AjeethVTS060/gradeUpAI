@@ -1,5 +1,6 @@
-import { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { motion, AnimatePresence } from 'framer-motion'; // Added motion and AnimatePresence
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
@@ -9,14 +10,14 @@ import { Label } from "../components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../components/ui/dialog";
-import { 
-  Plus, 
-  Calendar, 
-  Clock, 
-  FileText, 
-  Upload, 
-  Users, 
-  CheckCircle, 
+import {
+  Plus,
+  Calendar,
+  Clock,
+  FileText,
+  Upload,
+  Users,
+  CheckCircle,
   Star,
   Send,
   Paperclip,
@@ -26,13 +27,41 @@ import {
   BookOpen,
   GraduationCap,
   Edit,
-  Trash2
+  Trash2,
+  Brain, // Added for FunnyLoader
+  Loader2 // Added for FunnyLoader
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { apiRequest, queryClient } from "../lib/queryClient";
 import { useAuth } from "../hooks/use-auth";
-import Navigation from "../components/navigation";
+import MinimalHeader from "../components/minimal-header"; // Changed from Navigation
+import { useTheme } from "../hooks/use-theme"; // Added for theme toggle
 import { formatDistanceToNow } from "date-fns";
+
+const FunnyLoader = ({ text = "Compiling assignments and student data..." }) => (
+    <motion.div
+        className="flex flex-col items-center justify-center space-y-4 text-center"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.8 }}
+    >
+        <motion.div
+            animate={{
+                y: [0, -10, 0],
+                rotate: [0, 0, 0, 0]
+            }}
+            transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+            }}
+        >
+            <GraduationCap className="h-20 w-20 text-indigo-500" /> {/* Changed icon to GraduationCap */}
+        </motion.div>
+        <p className="text-xl font-semibold text-gray-700 dark:text-gray-300">{text}</p>
+        <Loader2 className="h-8 w-8 text-indigo-400 animate-spin" />
+    </motion.div>
+);
 
 interface Course {
   id: number;
@@ -68,6 +97,7 @@ interface Submission {
 
 export default function TeacherHomeworkPage() {
   const { user } = useAuth();
+  const { theme, setTheme } = useTheme(); // Initialize useTheme
   const [selectedTab, setSelectedTab] = useState("overview");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
@@ -158,22 +188,22 @@ export default function TeacherHomeworkPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Navigation currentRole="teacher" onRoleChange={() => {}} />
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100 dark:from-gray-900 dark:to-purple-950">
+        <FunnyLoader text="Loading homework management data..." />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navigation currentRole="teacher" onRoleChange={() => {}} />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 dark:from-gray-900 dark:to-purple-950 text-gray-900 dark:text-white">
+      <MinimalHeader title="Homework Management" currentTheme={theme} onThemeChange={setTheme} />
       
-      <div className="container mx-auto px-4 py-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="container mx-auto px-4 py-8"
+      >
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Homework Management</h1>
@@ -297,9 +327,14 @@ export default function TeacherHomeworkPage() {
 
         {/* Overview Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-3">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.3 }}
+          >
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-3">
                 <FileText className="h-8 w-8 text-blue-500" />
                 <div>
                   <p className="text-sm text-gray-600">Total Assignments</p>
@@ -308,42 +343,61 @@ export default function TeacherHomeworkPage() {
               </div>
             </CardContent>
           </Card>
+          </motion.div> // Closing motion.div for the first card
           
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-3">
-                <Clock className="h-8 w-8 text-green-500" />
-                <div>
-                  <p className="text-sm text-gray-600">Active Assignments</p>
-                  <p className="text-2xl font-bold">{active}</p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.3 }}
+          >
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-3">
+                  <Clock className="h-8 w-8 text-green-500" />
+                  <div>
+                    <p className="text-sm text-gray-600">Active Assignments</p>
+                    <p className="text-2xl font-bold">{active}</p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
           
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-3">
-                <Send className="h-8 w-8 text-purple-500" />
-                <div>
-                  <p className="text-sm text-gray-600">Total Submissions</p>
-                  <p className="text-2xl font-bold">{totalSubmissions}</p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.3 }}
+          >
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-3">
+                  <Send className="h-8 w-8 text-purple-500" />
+                  <div>
+                    <p className="text-sm text-gray-600">Total Submissions</p>
+                    <p className="text-2xl font-bold">{totalSubmissions}</p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
           
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-3">
-                <BarChart3 className="h-8 w-8 text-orange-500" />
-                <div>
-                  <p className="text-sm text-gray-600">Avg Completion</p>
-                  <p className="text-2xl font-bold">{avgCompletionRate.toFixed(1)}%</p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.3 }}
+          >
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-3">
+                  <BarChart3 className="h-8 w-8 text-orange-500" />
+                  <div>
+                    <p className="text-sm text-gray-600">Avg Completion</p>
+                    <p className="text-2xl font-bold">{avgCompletionRate.toFixed(1)}%</p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
         {/* Assignment Tabs */}
@@ -369,14 +423,20 @@ export default function TeacherHomeworkPage() {
                   </CardContent>
                 </Card>
               ) : (
-                assignments.map((assignment) => {
+                assignments.map((assignment, index) => {
                   const dueDate = new Date(assignment.dueDate);
                   const isOverdue = dueDate < new Date();
                   const completionRate = (assignment.submissionCount / assignment.totalStudents) * 100;
                   
                   return (
-                    <Card key={assignment.id} className="hover:shadow-md transition-shadow">
-                      <CardHeader>
+                    <motion.div
+                      key={assignment.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05, duration: 0.3 }} // Staggered animation
+                    >
+                      <Card className="hover:shadow-md transition-shadow">
+                        <CardHeader>
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <CardTitle className="text-xl mb-2">{assignment.title}</CardTitle>
@@ -441,6 +501,7 @@ export default function TeacherHomeworkPage() {
                         </div>
                       </CardContent>
                     </Card>
+                    </motion.div> // Closing motion.div for assignment card
                   );
                 })
               )}
@@ -602,7 +663,7 @@ export default function TeacherHomeworkPage() {
             </div>
           </TabsContent>
         </Tabs>
-      </div>
+      </motion.div> // Closing motion.div for main content
     </div>
   );
 }

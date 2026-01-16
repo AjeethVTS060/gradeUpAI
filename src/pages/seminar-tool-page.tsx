@@ -31,26 +31,28 @@ const FunnyLoader = ({ text }) => (
     </div>
 );
 
-const AICoachChat = ({ onClose }) => {
-    const [messages, setMessages] = useState([{ text: "Hello! I'm your AI Coach. Ask me anything about presentation skills, topic details, or how to structure your seminar.", sender: 'ai' }]);
-    const [input, setInput] = useState('');
-    const messagesEndRef = useRef(null);
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
 
-    useEffect(scrollToBottom, [messages]);
+const SeminarToolPage = () => {
+    const { theme, setTheme } = useTheme();
+    const [seminarState, setSeminarState] = useState('idle'); // idle, topic_selected, ai_demo, student_practice, evaluating, feedback
+    const [selectedTopic, setSelectedTopic] = useState(null);
+    const [conversation, setConversation] = useState([]);
 
-    const handleSend = () => {
-        if (input.trim() === '') return;
-        const newMessages = [...messages, { text: input, sender: 'user' }];
-        setMessages(newMessages);
-        const lowerCaseInput = input.toLowerCase();
-        setInput('');
+    const [userInput, setUserInput] = useState('');
+    const [feedback, setFeedback] = useState(null);
+    const conversationEndRef = useRef(null);
+
+    const handleSendMessage = () => {
+        if (userInput.trim() === '') return;
+
+        const newConversation = [...conversation, { sender: 'user', text: userInput }];
+        setConversation(newConversation);
+        const lowerCaseInput = userInput.toLowerCase();
+        setUserInput('');
 
         setTimeout(() => {
-            let aiResponse = "That's an excellent point! To make it even better, try using a real-world example. People connect with stories. What other concerns do you have?";
+            let aiResponse = "That's an interesting question. While I'm a seminar coach, let me see if I can help. Can you elaborate?";
             if (lowerCaseInput.includes('structure')) {
                 aiResponse = "A good structure is key! I recommend the 'Problem-Solution-Benefit' framework. First, present the problem, then your solution, and finally, the benefits. What do you think?";
             } else if (lowerCaseInput.includes('engage') || lowerCaseInput.includes('boring')) {
@@ -62,63 +64,10 @@ const AICoachChat = ({ onClose }) => {
             } else if (lowerCaseInput.includes('end') || lowerCaseInput.includes('conclusion')) {
                 aiResponse = "For a memorable conclusion, summarize your key points and end with a strong call to action or a thought-provoking final statement. Leave your audience with something to think about!";
             }
-            setMessages(prev => [...prev, { text: aiResponse, sender: 'ai' }]);
+            setConversation(prev => [...prev, { text: aiResponse, sender: 'ai' }]);
         }, 1200);
     };
 
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="fixed bottom-24 right-5 w-[400px] h-[550px] bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl flex flex-col z-50"
-        >
-            <div className="p-4 border-b dark:border-gray-800 flex justify-between items-center bg-white/50 dark:bg-gray-900/50 rounded-t-2xl">
-                <h3 className="font-bold text-lg text-gray-800 dark:text-white flex items-center gap-2">
-                    <Sparkles className="text-purple-500" /> AI Seminar Coach
-                </h3>
-                <Button variant="ghost" size="icon" className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white" onClick={onClose}>&times;</Button>
-            </div>
-            <div className="flex-1 p-4 overflow-y-auto">
-                {messages.map((msg, index) => (
-                    <motion.div
-                        key={index}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 * index }}
-                        className={`flex items-start gap-3 my-4 ${msg.sender === 'user' ? 'justify-end' : ''}`}
-                    >
-                        {msg.sender === 'ai' && <Bot className="w-8 h-8 text-purple-500 flex-shrink-0 p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-full" />}
-                        <div className={`p-3 rounded-lg max-w-xs text-sm ${msg.sender === 'user' ? 'bg-blue-500 text-white rounded-br-none' : 'bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-bl-none'}`}>
-                            {msg.text}
-                        </div>
-                    </motion.div>
-                ))}
-                <div ref={messagesEndRef} />
-            </div>
-            <div className="p-4 border-t dark:border-gray-800 flex items-center gap-2">
-                <Textarea
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Ask for presentation tips..."
-                    className="flex-1 bg-gray-100 dark:bg-gray-800 border-transparent focus:ring-purple-500"
-                    onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
-                />
-                <Button onClick={handleSend} className="bg-purple-600 hover:bg-purple-700 rounded-full w-12 h-12 flex items-center justify-center"><Send className="w-5 h-5" /></Button>
-            </div>
-        </motion.div>
-    );
-};
-
-const SeminarToolPage = () => {
-    const { theme, setTheme } = useTheme();
-    const [seminarState, setSeminarState] = useState('idle'); // idle, topic_selected, ai_demo, student_practice, evaluating, feedback
-    const [selectedTopic, setSelectedTopic] = useState(null);
-    const [conversation, setConversation] = useState([]);
-    const [isCoachOpen, setCoachOpen] = useState(false);
-    const [feedback, setFeedback] = useState(null);
-    const conversationEndRef = useRef(null);
 
     const scrollToBottom = () => {
         conversationEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -253,6 +202,26 @@ const SeminarToolPage = () => {
                             )}
                             <div ref={conversationEndRef} />
                         </div>
+
+                        {/* Chat Input */}
+                        <div className="p-4 border-t border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-black/20">
+                            <div className="relative">
+                                <Textarea
+                                    value={userInput}
+                                    onChange={(e) => setUserInput(e.target.value)}
+                                    placeholder="Ask the AI for tips or questions about your topic..."
+                                    className="w-full bg-gray-100 dark:bg-gray-800 border-transparent rounded-lg pr-16"
+                                    onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSendMessage())}
+                                />
+                                <Button 
+                                    onClick={handleSendMessage} 
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-purple-600 hover:bg-purple-700 rounded-md w-10 h-10 flex items-center justify-center p-0"
+                                >
+                                    <Send className="w-5 h-5" />
+                                </Button>
+                            </div>
+                        </div>
+
                         {seminarState === 'student_practice' && (
                              <motion.div initial={{opacity:0}} animate={{opacity:1}} className="p-4 flex justify-center items-center gap-4 border-t border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-black/20">
                                 <Button className="bg-red-500 hover:bg-red-600 text-white animate-pulse shadow-lg"><Mic className="mr-2"/> Recording in Progress...</Button>
@@ -330,18 +299,7 @@ const SeminarToolPage = () => {
                 </motion.div>
             </main>
             
-            <Button 
-                onClick={() => setCoachOpen(o => !o)}
-                className="floating-fab fixed bottom-5 right-5 z-50 p-4 rounded-full shadow-lg bg-gradient-to-tr from-purple-500 to-pink-500 text-white transform hover:scale-110 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-300 dark:focus:ring-purple-800"
-                aria-label="Toggle AI Coach"
-                size="icon"
-            >
-                <Sparkles className="h-6 w-6"/>
-            </Button>
-            
-            <AnimatePresence>
-                {isCoachOpen && <AICoachChat onClose={() => setCoachOpen(false)} />}
-            </AnimatePresence>
+
         </div>
     );
 };

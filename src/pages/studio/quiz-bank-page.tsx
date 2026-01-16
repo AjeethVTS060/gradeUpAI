@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../../components/ui/button';
-import { Moon, Sun, ArrowLeft, Book, BookCheck, Filter, Search, Wand2, Smile, Meh, Frown, PartyPopper, Loader2, Eye, BookOpenCheck } from 'lucide-react';
+import { Moon, Sun, ArrowLeft, Book, BookCheck, Filter, Search, Wand2, Smile, Meh, Frown, PartyPopper, Loader2, Eye, BookOpenCheck, Menu } from 'lucide-react';
 import { useTheme } from '../../hooks/use-theme';
 import { Link, useLocation } from 'wouter';
 import { Input } from '../../components/ui/input';
@@ -113,6 +113,7 @@ const QuizBankPage = () => {
     const [allQuestions, setAllQuestions] = useState(initialAllQuestions);
     const [searchTerm, setSearchTerm] = useState('');
     const [difficultyFilter, setDifficultyFilter] = useState('all');
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isCreateModalOpen, setCreateModalOpen] = useState(false);
     
     const [newQuizTitle, setNewQuizTitle] = useState('');
@@ -184,7 +185,7 @@ const QuizBankPage = () => {
                             Back to Studio
                         </Button>
                     </Link>
-                    <h1 className="text-3xl font-bold flex items-center gap-3 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-500">
+                    <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-500 order-first sm:order-none w-full sm:w-auto text-center justify-center">
                         <Book />
                         Quiz Bank
                     </h1>
@@ -199,32 +200,71 @@ const QuizBankPage = () => {
                             <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
                             <span className="sr-only">Toggle theme</span>
                         </Button>
-                        <div className="relative">
-                            <Input placeholder="Search quizzes..." className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 pl-10 w-40 sm:w-auto" onChange={(e) => setSearchTerm(e.target.value)} />
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 dark:text-slate-500" />
+                        <div className="hidden md:flex items-center gap-2">
+                            <div className="relative">
+                                <Input placeholder="Search quizzes..." className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 pl-10 w-40 sm:w-auto" onChange={(e) => setSearchTerm(e.target.value)} />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 dark:text-slate-500" />
+                            </div>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700">
+                                        <Filter className="mr-2 h-4 w-4" />
+                                        Filter
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-56 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white">
+                                    <DropdownMenuRadioGroup value={difficultyFilter} onValueChange={setDifficultyFilter}>
+                                        <DropdownMenuRadioItem value="all">All Difficulties</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="Easy">Easy</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="Medium">Medium</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="Hard">Hard</DropdownMenuRadioItem>
+                                    </DropdownMenuRadioGroup>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline" className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700">
-                                    <Filter className="mr-2 h-4 w-4" />
-                                    Filter
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white">
-                                <DropdownMenuRadioGroup value={difficultyFilter} onValueChange={setDifficultyFilter}>
-                                    <DropdownMenuRadioItem value="all">All Difficulties</DropdownMenuRadioItem>
-                                    <DropdownMenuRadioItem value="Easy">Easy</DropdownMenuRadioItem>
-                                    <DropdownMenuRadioItem value="Medium">Medium</DropdownMenuRadioItem>
-                                    <DropdownMenuRadioItem value="Hard">Hard</DropdownMenuRadioItem>
-                                </DropdownMenuRadioGroup>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
                         <Button className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white transition-all duration-300 transform hover:scale-105" onClick={() => setCreateModalOpen(true)}>
                             <Wand2 className="mr-2 h-4 w-4" />
-                            Create Quiz
+                            <span className="hidden sm:inline">Create Quiz</span>
+                        </Button>
+                        <Button variant="outline" className="md:hidden" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+                            <Menu className="h-5 w-5" />
                         </Button>
                     </div>
                 </header>
+
+                <AnimatePresence>
+                {isMobileMenuOpen && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="md:hidden mb-4"
+                    >
+                        <div className="flex flex-col gap-4 p-4 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                            <div className="relative">
+                                <Input placeholder="Search quizzes..." className="bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600 pl-10 w-full" onChange={(e) => setSearchTerm(e.target.value)} />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 dark:text-slate-500" />
+                            </div>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" className="w-full justify-center bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600">
+                                        <Filter className="mr-2 h-4 w-4" />
+                                        Filter ({difficultyFilter})
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-full bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white">
+                                    <DropdownMenuRadioGroup value={difficultyFilter} onValueChange={setDifficultyFilter}>
+                                        <DropdownMenuRadioItem value="all">All Difficulties</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="Easy">Easy</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="Medium">Medium</DropdownMenuRadioItem>
+                                        <DropdownMenuRadioItem value="Hard">Hard</DropdownMenuRadioItem>
+                                    </DropdownMenuRadioGroup>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                    </motion.div>
+                )}
+                </AnimatePresence>
 
                 <AnimatePresence>
                     <motion.div
@@ -300,17 +340,17 @@ const QuizBankPage = () => {
                                             </DialogDescription>
                                         </DialogHeader>
                                         <div className="grid gap-4 py-4">
-                                            <div className="grid grid-cols-4 items-center gap-4">
-                                                <label htmlFor="title" className="text-right">Title</label>
-                                                <Input id="title" value={newQuizTitle} onChange={(e) => setNewQuizTitle(e.target.value)} className="col-span-3 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700" />
+                                            <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                                                <label htmlFor="title" className="text-left sm:text-right">Title</label>
+                                                <Input id="title" value={newQuizTitle} onChange={(e) => setNewQuizTitle(e.target.value)} className="col-span-1 sm:col-span-3 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700" />
                                             </div>
-                                            <div className="grid grid-cols-4 items-center gap-4">
-                                                <label htmlFor="subject" className="text-right">Subject</label>
-                                                <Input id="subject" value={newQuizSubject} onChange={(e) => setNewQuizSubject(e.target.value)} className="col-span-3 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700" />
+                                            <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                                                <label htmlFor="subject" className="text-left sm:text-right">Subject</label>
+                                                <Input id="subject" value={newQuizSubject} onChange={(e) => setNewQuizSubject(e.target.value)} className="col-span-1 sm:col-span-3 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700" />
                                             </div>
-                                            <div className="grid grid-cols-4 items-center gap-4">
-                                                <label className="text-right">Difficulty</label>
-                                                <div className="col-span-3 flex gap-2">
+                                            <div className="grid grid-cols-1 sm:grid-cols-4 items-start gap-4 pt-2">
+                                                <label className="text-left sm:text-right pt-2">Difficulty</label>
+                                                <div className="col-span-1 sm:col-span-3 flex flex-wrap gap-2">
                                                     {Object.entries(difficultyIcons).map(([level, icon]) => (
                                                         <Button key={level} variant="outline" onClick={() => setNewQuizDifficulty(level)} className={`transition-all text-slate-900 dark:text-white ${newQuizDifficulty === level ? 'bg-purple-500/30 border-purple-500' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'}`}>
                                                             {icon} <span className="ml-2">{level}</span>
@@ -353,7 +393,7 @@ const QuizBankPage = () => {
                                                 Review the questions and answers for this quiz.
                                             </DialogDescription>
                                         </DialogHeader>
-                                        <div className="my-4 h-[60vh] overflow-y-auto p-2 pr-4 rounded-lg">
+                                        <div className="my-4 max-h-[60vh] overflow-y-auto p-2 pr-4 rounded-lg">
                                             {allQuestions[selectedQuiz.id] && allQuestions[selectedQuiz.id].length > 0 ? (
                                                 allQuestions[selectedQuiz.id].map((item, index) => (
                                                    <QuestionCard qa={item} index={index} key={index} />

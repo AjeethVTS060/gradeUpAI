@@ -65,18 +65,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const loginMutation = useMutation({
-    mutationFn: async (credentials: LoginData) => {
+    mutationFn: async (credentials: LoginData & { captchaAnswer?: string; captchaSessionId?: string }) => {
       if (USE_MOCK_AUTH) {
-        // Simulate login with mock data
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Check credentials and return appropriate mock user
-        if (credentials.email.includes("teacher")) {
-          return mockTeacher as SelectUser;
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+
+        const { email, password, captchaAnswer, captchaSessionId } = credentials;
+
+        // Basic check for empty credentials
+        if (!email || !password) {
+            throw new Error("Email and password cannot be empty."); // No requiresCaptcha initially
         }
-        return mockUser as SelectUser;
+
+        // Dummy Captcha validation (very basic for mock)
+        if (captchaSessionId) { // Check if captcha was presented
+            if (captchaAnswer !== "GRADEUP") { // Hardcoded mock captcha answer
+                const error = new Error("Incorrect security verification.");
+                (error as any).requiresCaptcha = true; // Indicate that captcha was the issue
+                throw error;
+            }
+        }
+        
+        // Login with ANY credentials logic:
+        // If "teacher" is in the email, return a mock teacher.
+        if (email.includes("teacher")) {
+            return { ...mockTeacher, email, role: "teacher" } as SelectUser;
+        }
+        // Otherwise, return a mock student.
+        return { ...mockUser, email, role: "student" } as SelectUser;
       }
 
+      // Original real API call if USE_MOCK_AUTH is false
       const res = await apiRequest("POST", "/api/login", credentials);
       return await res.json();
     },
@@ -104,21 +122,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const registerMutation = useMutation({
     mutationFn: async (credentials: RegisterData) => {
       if (USE_MOCK_AUTH) {
-        // Simulate registration with mock data
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        const newUser = {
-          ...mockUser,
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+
+        // Mock validation: Check if email or username is already "taken" by a dummy user
+        if (credentials.email === "student@example.com" || credentials.email === "teacher@example.com" || credentials.email === "admin@example.com") {
+          throw new Error("Email already registered.");
+        }
+        if (credentials.username === "student" || credentials.username === "teacher" || credentials.username === "admin") {
+            throw new Error("Username already taken.");
+        }
+        // Basic password strength check (mock)
+        if (credentials.password.length < 6) {
+          throw new Error("Password must be at least 6 characters long.");
+        }
+
+        const newUser: SelectUser = {
+          id: (Math.random() * 100000).toFixed(0), // Dummy ID
           username: credentials.username,
           email: credentials.email,
           firstName: credentials.firstName,
           lastName: credentials.lastName,
-          role: credentials.role as "student" | "teacher",
-          grade: credentials.grade || 10,
+          role: credentials.role as "student" | "teacher" | "admin",
+          grade: credentials.grade || (credentials.role === "student" ? 10 : null),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          // Add other default user properties if necessary
+          avatar: `https://i.pravatar.cc/40?u=${credentials.username}`,
+          bio: "",
+          points: 0,
+          level: 1,
+          lastLogin: new Date().toISOString(),
         };
-        return newUser as SelectUser;
+        return newUser;
       }
 
+      // Original real API call if USE_MOCK_AUTH is false
       const res = await apiRequest("POST", "/api/register", credentials);
       return await res.json();
     },

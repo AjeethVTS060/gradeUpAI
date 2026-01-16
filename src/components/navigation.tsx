@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useAuth } from "../hooks/use-auth";
 import { useTheme } from "../hooks/use-theme";
 import { Button } from "../components/ui/button";
@@ -11,6 +11,7 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "../components/ui/dropdown-menu";
+import { cn } from "../lib/utils";
 import { 
   GraduationCap, 
   Bell, 
@@ -29,7 +30,13 @@ import {
   FolderOpen,
   ArrowLeft,
   Sun,
-  Moon
+  Moon,
+  Bot,
+  Trophy,
+  MessagesSquare,
+  PlusCircle,
+  Calendar,
+  ChevronRight
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { AnimatePresence, motion } from "framer-motion";
@@ -44,6 +51,10 @@ function Navigation({ currentRole, onRoleChange }: NavigationProps) {
   const [location, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
+  const [openSubs, setOpenSubs] = React.useState<Record<string, boolean>>({});
+
+  const toggleSub = (key: string) =>
+    setOpenSubs((s) => ({ ...s, [key]: !s[key] }));
 
   const handleLogout = () => {
     logoutMutation.mutate();
@@ -53,26 +64,54 @@ function Navigation({ currentRole, onRoleChange }: NavigationProps) {
     setTheme(theme === 'light' ? 'dark' : 'light');
   };
 
-  const studentLinks = [
-    { href: "/dashboard", label: "Dashboard", icon: Home },
-    { href: "/bookExpanded", label: "BookContents", icon: BookOpen },
-    { href: "/ai-tutor", label: "AI Tutor", icon: MessageSquare },
-    // { href: "/quiz", label: "Practice Exams", icon: FileText },
-    // { href: "/homework", label: "Homework", icon: ClipboardList },
-    // { href: "/analytics", label: "Analytics", icon: BarChart3 },
-    { href: "/seminar-tool", label: "Seminar Tool", icon: GraduationCap },
-    { href: "/debate-tool", label: "Debate Tool", icon: MessageSquare },
+  const allStudentLinks = [
+    { icon: Home, label: "Dashboard", href: "/dashboard" },
+    { icon: BookOpen, label: "My Courses", href: "/courses" },
+    { icon: FileText, label: "Assignments", href: "/homework" },
+    { icon: BarChart3, label: "Progress", href: "/progress" },
+    { icon: Bot, label: "AI Tutor", href: "/ai-tutor" },
+    { icon: FileText, label: "Book Content", href: "/bookExpanded" },
+    {
+      icon: FileText,
+      label: "Homework Tool",
+      href: "/homework",
+    },
+    { icon: MessageSquare, label: "Community", href: "/community" },
+    { icon: MessageSquare, label: "Community New", href: "/communityNew" },
+
+    { icon: Trophy, label: "Achievements", href: "/achievements" },
+    { icon: Users, label: "Seminar Tool", href: "/seminar-tool" },
+    { icon: MessagesSquare, label: "Debate Tool", href: "/debate-tool" },
+    {
+      icon: Home,
+      label: "Exam Windows",
+      href: "/preparation-exam",
+      children: [
+        { label: "Prep", href: "/preparation-exam" },
+        { label: "Main Exam", href: "/main-exam" },
+      ],
+    },
   ];
 
-  const teacherLinks = [
-    { href: "/dashboard", label: "Dashboard", icon: Home },
-    { href: "/content-manager", label: "Content Manager", icon: FolderOpen },
-    { href: "/students", label: "Students", icon: Users },
-    { href: "/teacher/homework", label: "Homework", icon: ClipboardList },
-    { href: "/analytics", label: "Analytics", icon: BarChart3 },
+  const allTeacherLinks = [
+    { icon: Home, label: "Dashboard", href: "/dashboard" },
+    {
+      icon: PlusCircle,
+      label: "Create Content",
+      href: "/enhanced-content-manager",
+    },
+    { icon: Users, label: "My Students", href: "/students" },
+    { icon: FileText, label: "Assignments", href: "/teacher/homework" },
+    { icon: MessageSquare, label: "Community", href: "/community" },
+    { icon: BarChart3, label: "Student Progress", href: "/analytics" },
+    { icon: Calendar, label: "Analytics", href: "/analytics" },
   ];
 
-  const navLinks = currentRole === "teacher" ? teacherLinks : studentLinks;
+  const mainStudentLinks = allStudentLinks.slice(0, 5);
+  const mainTeacherLinks = allTeacherLinks.slice(0, 5);
+
+  const navLinks = currentRole === "teacher" ? allTeacherLinks : allStudentLinks;
+  const mainNavLinks = currentRole === "teacher" ? mainTeacherLinks : mainStudentLinks;
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return location === "/dashboard" || location === "/";
@@ -204,7 +243,7 @@ function Navigation({ currentRole, onRoleChange }: NavigationProps) {
           
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-1 xl:space-x-2">
-            {navLinks.map((link) => (
+            {mainNavLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}

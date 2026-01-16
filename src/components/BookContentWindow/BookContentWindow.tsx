@@ -265,6 +265,7 @@ const QUIZ_DATA: Record<string, { q: string; opts: string[]; a: number }> = {
 
 const BookContentWindow = () => {
   // --- States ---
+  const [isLoadingPage, setIsLoadingPage] = useState(true);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [activeChapter, setActiveChapter] = useState<any>(null);
   const [isDark, setIsDark] = useState(false);
@@ -277,6 +278,7 @@ const BookContentWindow = () => {
 const [activeFilter, setActiveFilter] = useState<string>("All");
 const [isMiniChatOpen, setIsMiniChatOpen] = useState(false);
 const [localQuery, setLocalQuery] = useState("");
+const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 // Inside your component
 
   
@@ -288,14 +290,24 @@ const [localQuery, setLocalQuery] = useState("");
   const [selectedText, setSelectedText] = useState("");
   const [timer, setTimer] = useState(0);
 const [activeInfo, setActiveInfo] = useState<string | null>(null);
+const [zoomImage, setZoomImage] = useState<string | null>(null);
+const [isTestMode, setIsTestMode] = useState(false);
+const [testTarget, setTestTarget] = useState<any>(null);
+const [score, setScore] = useState({ correct: 0, total: 0 });
+const [toast, setToast] = useState<{
+    msg: string;
+    type: "success" | "error";
+  } | null>(null);
+const persistentSelection = useRef("");
+const menuRef = useRef<HTMLDivElement>(null);
 
-  const handleEnhanceContent = () => {
-    setIsEnhancing(true);
-    setTimeout(() => {
-      setIsContentEnhanced(true);
-      setIsEnhancing(false);
-    }, 1500);
-  };
+
+useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoadingPage(false);
+    }, 1500); // 1.5 second delay
+    return () => clearTimeout(timer);
+  }, []);
 
   // --- Timer Logic ---
   useEffect(() => {
@@ -305,11 +317,41 @@ const [activeInfo, setActiveInfo] = useState<string | null>(null);
     }
     return () => clearInterval(interval);
   }, [selectedBook, isQuizOpen, isSummaryOpen]);
+  
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuPos(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleEnhanceContent = () => {
+    setIsEnhancing(true);
+    setTimeout(() => {
+      setIsContentEnhanced(true);
+      setIsEnhancing(false);
+    }, 1500);
+  };
+
+  if (isLoadingPage) {
+    return (
+      <div className="app-root" data-theme={isDark ? "dark" : "light"}>
+        <div className="overlay">
+          <div className="book-loader"></div>
+        </div>
+        <style>{styles}</style>
+      </div>
+    );
+  }
 
   const formatTime = (s: number) =>
     `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`;
   // Inside your component
-  const [zoomImage, setZoomImage] = useState<string | null>(null);
 
   const handleImageClick = (description: string) => {
     setZoomImage(description);
@@ -351,9 +393,6 @@ const [activeInfo, setActiveInfo] = useState<string | null>(null);
     ],
   };
   // --- Inside EduStream component states ---
-  const [isTestMode, setIsTestMode] = useState(false);
-  const [testTarget, setTestTarget] = useState<any>(null);
-  const [score, setScore] = useState({ correct: 0, total: 0 });
 
   // Function to toggle mode and pick a random target
   const toggleTestMode = () => {
@@ -409,10 +448,6 @@ const [activeInfo, setActiveInfo] = useState<string | null>(null);
   };
 
   // --- Inside EduStream component states ---
-  const [toast, setToast] = useState<{
-    msg: string;
-    type: "success" | "error";
-  } | null>(null);
 
   // --- The Toast Function ---
   const triggerToast = (msg: string) => {
@@ -423,22 +458,28 @@ const [activeInfo, setActiveInfo] = useState<string | null>(null);
     setTimeout(() => setToast(null), 2000);
   };
 
-const persistentSelection = useRef("");
-
   // --- Selection Logic ---
- const handleMouseUp = () => {
-  const sel = window.getSelection();
-  const text = sel?.toString().trim();
-  if (text && sel && sel.rangeCount > 0) {
-    const rect = sel.getRangeAt(0).getBoundingClientRect();
-    setMenuPos({ x: rect.left + rect.width / 2, y: rect.top - 60 });
-    setSelectedText(text);
-    persistentSelection.current = text; // Save to ref
-  } else {
-    // DO NOT setMenuPos(null) here if clicking inside the menu
-    // We handle closing manually in the buttons
-  }
-};
+  const handleMouseUp = () => {
+    const sel = window.getSelection();
+    const text = sel?.toString().trim();
+
+    if (text && sel && sel.rangeCount > 0) {
+      const range = sel.getRangeAt(0);
+      const scrollCanvas = document.querySelector('.scroll-canvas');
+      
+      if (scrollCanvas && scrollCanvas.contains(range.commonAncestorContainer)) {
+        const rect = range.getBoundingClientRect();
+        const canvasRect = scrollCanvas.getBoundingClientRect();
+
+        setMenuPos({
+          x: rect.left - canvasRect.left + rect.width / 2,
+          y: rect.top - canvasRect.top + scrollCanvas.scrollTop - 70,
+        });
+        setSelectedText(text);
+        persistentSelection.current = text;
+      }
+    }
+  };
   const handleAskAI = (query: string) => {
     setAiQuery(query);
     setIsAiOpen(true);
@@ -561,9 +602,10 @@ const persistentSelection = useRef("");
       className={`app-root ${isFocus ? "focus-active" : ""}`}
       data-theme={isDark ? "dark" : "light"}
     >
+      {isSidebarOpen && <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>}
       <div className="workstation">
         {/* Sidebar */}
-        <aside className="sidebar glass">
+        <aside className={`sidebar glass ${isSidebarOpen ? "open" : ""}`}>
           <button className="exit-btn" onClick={() => setIsSummaryOpen(true)}>
             ← Back to Subjects
           </button>
@@ -578,6 +620,7 @@ const persistentSelection = useRef("");
                 onClick={() => {
                   setActiveChapter(ch);
                   setIsContentEnhanced(false);
+                  setIsSidebarOpen(false);
                 }}
               >
                 <span className="nav-item-number">{ch.id}</span>
@@ -598,6 +641,11 @@ const persistentSelection = useRef("");
         {/* Reader */}
         <main className="main-viewport">
           <header className="reader-header glass">
+            <button className="hamburger-btn" onClick={() => setIsSidebarOpen(true)}>
+              <span></span>
+              <span></span>
+              <span></span>
+            </button>
             <div className="timer">⏱️ {formatTime(timer)}</div>
 
             <Link href="/dashboard">
@@ -609,24 +657,24 @@ const persistentSelection = useRef("");
                 className="quiz-trigger"
                 onClick={() => setIsQuizOpen(true)}
               >
-                <TestTube2 className="mr-2 h-4 w-4" />
-                Take Quiz
+                <TestTube2 className="mr-2 h-4 w-4 button-icon" />
+                <span className="button-text">Take Quiz</span>
               </Button>
               {isContentEnhanced ? (
                 <Button
                   className="btn-premium-active"
                   onClick={() => setIsContentEnhanced(false)}
                 >
-                  <ChevronsLeft className="mr-2 h-4 w-4" />
-                  Collapse Content
+                  <ChevronsLeft className="mr-2 h-4 w-4 button-icon" />
+                  <span className="button-text">Collapse Content</span>
                 </Button>
               ) : (
                 <Button
                   onClick={handleEnhanceContent}
                   disabled={!activeChapter.enhancedContent}
                 >
-                  <ChevronsRight className="mr-2 h-4 w-4" />
-                  Expand Content
+                  <ChevronsRight className="mr-2 h-4 w-4 button-icon" />
+                  <span className="button-text">Expand Content</span>
                 </Button>
               )}
               <Button
@@ -650,22 +698,23 @@ const persistentSelection = useRef("");
           <div className="scroll-canvas" onMouseUp={handleMouseUp}>
           {menuPos && (
   <div
+    ref={menuRef}
     className="context-menu glass"
-    style={{ 
-      top: menuPos.y, 
+    style={{
+      top: menuPos.y,
       left: menuPos.x,
-      position: 'fixed', // Use fixed to stay relative to viewport
-      zIndex: 9999 
+      position: 'absolute',
+      transform: 'translateX(-50%)',
+      zIndex: 9999,
     }}
-    // Critical: prevent global mouseup from firing when clicking the menu
-    onMouseUp={(e) => e.stopPropagation()}
-    onMouseDown={(e) => e.preventDefault()} 
+    onClick={(e) => e.stopPropagation()}
   >
+    <button className="context-close-btn" onClick={() => setMenuPos(null)}>
+        &times;
+    </button>
     <button
-      onClick={(e) => {
-        e.stopPropagation();
-        const text = persistentSelection.current;
-        setHighlights(prev => [...prev, text]);
+      onClick={() => {
+        setHighlights(prev => [...prev, persistentSelection.current]);
         setMenuPos(null);
       }}
     >
@@ -674,8 +723,7 @@ const persistentSelection = useRef("");
     
     <button 
       className="ai-accent"
-      onClick={(e) => {
-        e.stopPropagation();
+      onClick={() => {
         handleAskAI(`Explain this in detail: "${persistentSelection.current}"`);
         setMenuPos(null);
       }}
@@ -685,8 +733,7 @@ const persistentSelection = useRef("");
 
     <button 
       className="ai-accent"
-      onClick={(e) => {
-        e.stopPropagation();
+      onClick={() => {
         handleAskAI(`Summarize this passage: "${persistentSelection.current}"`);
         setMenuPos(null);
       }}
@@ -696,8 +743,7 @@ const persistentSelection = useRef("");
 
     <button
       className="ai-accent"
-      onClick={(e) => {
-        e.stopPropagation();
+      onClick={() => {
         handleAskAI(persistentSelection.current);
         setMenuPos(null);
       }}
@@ -712,12 +758,12 @@ const persistentSelection = useRef("");
                <AnimatePresence mode="wait">
                 <motion.p
                   key={isContentEnhanced ? "enhanced" : "normal"}
-                  className="reading-text"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
+                  className={`reading-text ${isContentEnhanced ? "enhanced-content" : ""}`}
+                  initial={{ opacity: 0, scale: 0.8, y: 50 }}
+                  animate={{ opacity: 1, scale: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 20, delay: 0.2 } }}
+                  exit={{ opacity: 0, scale: 0.8, y: -50, transition: { duration: 0.2 } }}
                 >
+                  {isContentEnhanced && <div className="expanded-badge">Expanded</div>}
                   {isContentEnhanced
                     ? activeChapter.enhancedContent
                     : activeChapter.content}
@@ -848,8 +894,8 @@ const persistentSelection = useRef("");
       </div>
 
       {isEnhancing && (
-        <div className="overlay">
-          <div className="loader"></div>
+        <div className="overlay blur">
+          <div className="book-loader"></div>
         </div>
       )}
 
@@ -1006,6 +1052,102 @@ const persistentSelection = useRef("");
 };
 
 const styles = `
+.book-loader {
+  width: 120px;
+  height: 75px;
+  border: 4px solid var(--accent);
+  border-radius: 8px 20px 20px 8px;
+  position: relative;
+  animation: flip 2.5s infinite ease-in-out;
+  transform-style: preserve-3d;
+  perspective: 800px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+.book-loader:before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -8px;
+  width: 8px;
+  height: calc(100% + 8px);
+  background: var(--accent);
+  border-radius: 8px 0 0 8px;
+  filter: brightness(0.8);
+}
+@keyframes flip {
+  0% {
+    transform: rotateY(0);
+  }
+  50% {
+    transform: rotateY(180deg);
+  }
+  100% {
+    transform: rotateY(360deg);
+  }
+}
+
+.enhanced-content {
+  position: relative;
+  background: linear-gradient(270deg, rgba(99, 102, 241, 0.05), rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.05));
+  background-size: 200% 200%;
+  animation: gradient-animation 5s ease infinite, fadeInExpand 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+  border-left: 3px solid var(--accent);
+  padding: 20px;
+  border-radius: 12px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3), 0 4px 15px rgba(0,0,0,0.05); /* Added glow */
+  transition: all 0.3s ease-in-out;
+}
+.enhanced-content:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.5), 0 6px 20px rgba(0,0,0,0.1); /* Enhanced glow on hover */
+}
+
+@keyframes fadeInExpand {
+  from {
+    opacity: 0;
+    transform: scale(0.95) rotateX(-10deg);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotateX(0deg);
+    filter: blur(0);
+  }
+}
+
+@keyframes gradient-animation {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.expanded-badge {
+  position: absolute;
+  top: -10px;
+  right: 20px;
+  background: var(--accent);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  animation: badge-pop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes badge-pop-in {
+  from {
+    transform: translateY(10px) scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
   :root {
   --bg-app: #fcfcfd;
   --text-main: #0f172a;
@@ -1855,7 +1997,7 @@ overflow: visible; /* Ensures the hotspot is visible */
 
 
   /* AI Drawer */
-  .ai-lab { width: 360px; position: fixed; right: -400px; top: 20px; bottom: 20px; transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1); padding: 30px; }
+  .ai-lab {z-index: 100;width: 360px; position: fixed; right: -400px; top: 20px; bottom: 20px; transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1); padding: 30px; }
   .ai-lab.open { right: 20px; }
   .query-ref { font-style: italic; opacity: 0.6; border-left: 3px solid var(--accent); padding-left: 15px; margin-bottom: 20px; }
   .ai-card { background: rgba(99, 102, 241, 0.05); padding: 25px; border-radius: 20px; border: 1px solid var(--accent); line-height: 1.6; }
@@ -1867,24 +2009,37 @@ overflow: visible; /* Ensures the hotspot is visible */
 
   /* Enhanced Context Menu */
 .context-menu {
-  position: absolute;
-  transform: translateX(-50%);
   display: flex;
-  flex-direction: row; /* Default: Left to Right */
-  flex-wrap: wrap;    /* Allows wrapping to Top to Bottom */
   gap: 4px;
-  padding: 6px;
+  padding: 8px;
   z-index: 1000;
   box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-  pointer-events: all !important;
-  user-select: none; /* Prevents text inside buttons from being selected */
-  cursor: default;
-  /* Constraints for Responsiveness */
-  max-width: 280px;   /* Forces wrap if too many buttons */
-  min-width: 120px;
-  justify-content: center;
-  align-items: center;
+  user-select: none;
   animation: contextMenuPop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.context-close-btn {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    font-size: 16px;
+    line-height: 22px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 10;
+    transition: all 0.2s ease;
+}
+.context-close-btn:hover {
+    background: var(--accent);
+    color: white;
+    transform: scale(1.1);
 }
 
 .context-menu button {
@@ -1937,7 +2092,7 @@ overflow: visible; /* Ensures the hotspot is visible */
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2000;
+  z-index: 3001;
   /* Darken the background slightly */
   background: rgba(0, 0, 0, 0.4); 
 }
@@ -1986,6 +2141,113 @@ overflow: visible; /* Ensures the hotspot is visible */
   @keyframes spin {
     to {
       transform: rotate(360deg);
+    }
+  }
+
+  .hamburger-btn {
+    display: none;
+    width: 30px;
+    height: 20px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    position: relative;
+    z-index: 2001;
+  }
+
+  .hamburger-btn span {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: var(--text-main);
+    margin-bottom: 5px;
+    transition: all 0.3s;
+  }
+  
+  .sidebar-overlay {
+    display: none;
+  }
+
+  @media (max-width: 1024px) {
+    .workstation {
+      padding: 10px;
+    }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 280px;
+      transform: translateX(-100%);
+      z-index: 3000;
+      transition: transform 0.3s ease-in-out;
+      box-shadow: 10px 0 30px rgba(0,0,0,0.1);
+      background: var(--bg-app);
+    }
+    .sidebar.open {
+      transform: translateX(0);
+    }
+    .main-viewport {
+      width: 100%;
+    }
+    .hamburger-btn {
+      display: block;
+    }
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 2999;
+      display: block;
+    }
+    .page {
+      padding: 20px;
+    }
+    .reader-header {
+      padding: 0 15px;
+      justify-content: space-between;
+    }
+    .actions .button-text {
+      display: none;
+    }
+    .actions .button-icon {
+      margin-right: 0;
+    }
+    .actions .btn-premium-active, .actions .quiz-trigger {
+      padding: 0.5rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .book-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    .library-wrapper {
+      padding: 0 20px;
+    }
+    .welcome-hero {
+      padding: 40px 0 30px;
+    }
+    .welcome-hero h2 {
+      font-size: 2rem;
+    }
+    .premium-header {
+      height: 80px;
+      padding: 0 20px;
+    }
+    .page {
+      padding: 15px;
+    }
+    h1 {
+      font-size: 2rem;
+    }
+    .reading-text {
+      font-size: 1rem;
     }
   }
 `;

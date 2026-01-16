@@ -1,13 +1,14 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { Link, useLocation } from "wouter";
+import { useToast } from "../hooks/use-toast";
+import { mockSubjects, mockUnits } from "../lib/mockData"; // Import mock data
 import { Button } from "../components/ui/button";
-import { ClipboardList, Database, BookCheck, HelpCircle } from "lucide-react";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
-import { Badge } from "../components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -15,45 +16,54 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "../components/ui/dialog";
-import { Slider } from "../components/ui/slider";
-import { Switch } from "../components/ui/switch";
-import { Textarea } from "../components/ui/textarea";
 import { ScrollArea } from "../components/ui/scroll-area";
-import { Separator } from "../components/ui/separator";
+import { Badge } from "../components/ui/badge";
+import { Textarea } from "../components/ui/textarea";
+import { useIsMobile } from "../hooks/use-mobile";
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../components/ui/sheet";
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from "../components/ui/resizable";
+import { ImperativePanelGroupHandle, ImperativePanelHandle } from "react-resizable-panels";
+import FunnyLoader from "../components/ui/FunnyLoader";
+import {
+  ArrowLeft,
+  BookOpen,
   Bot,
+  Brain,
+  GraduationCap,
+  History,
   Mic,
   MicOff,
-  Volume2,
-  VolumeX,
+  Pause,
+  Play,
   Send,
   User,
-  History,
-  Trash2,
-  BookOpen,
-  Settings,
-  MessageSquare,
-  Play,
-  Pause,
-  Sparkles,
-  Brain,
-  Zap,
-  ArrowLeft,
-  GraduationCap,
-  Volume2 as VoiceIcon,
-  Headphones,
+  VolumeX,
   Wand2,
+  BookCheck,
+  ClipboardList,
+  Database,
+  HelpCircle,
+  Trash2,
+  Sparkles,
+  Zap,
+  Speech,
+  PanelLeftClose,
+  PanelRightClose,
+  PanelLeftOpen,
+  PanelRightOpen,
+  Menu,
 } from "lucide-react";
-import { Link, useLocation } from "wouter";
-import { useToast } from "../hooks/use-toast";
+
 
 interface ChatMessage {
   id: string;
@@ -61,10 +71,10 @@ interface ChatMessage {
   content: string;
   timestamp: Date;
   subject?: string;
-  model?: string;
+  unit?: string; // Add unit to ChatMessage interface
 }
 
-interface ChatHistory {
+export interface ChatHistory {
   id: string;
   title: string;
   messages: ChatMessage[];
@@ -72,18 +82,96 @@ interface ChatHistory {
   lastUpdated: Date;
 }
 
+// Map mockSubjects to the desired format with icons and colors
+const formattedSubjects = [
+  {
+    value: "all",
+    label: "All Subjects",
+    icon: "🎯",
+    color: "bg-gradient-to-r from-purple-500 to-pink-500",
+  },
+  ...mockSubjects.map((subject) => {
+    let icon = "📚"; // Default icon
+    let color = "bg-gradient-to-r from-gray-500 to-gray-600"; // Default color
+
+    switch (subject.name.toLowerCase()) {
+      case "mathematics":
+        icon = "🔢";
+        color = "bg-gradient-to-r from-blue-500 to-cyan-500";
+        break;
+      case "physics":
+        icon = "⚛️";
+        color = "bg-gradient-to-r from-green-500 to-teal-500";
+        break;
+      case "chemistry":
+        icon = "🧪";
+        color = "bg-gradient-to-r from-red-500 to-orange-500";
+        break;
+      case "biology":
+        icon = "🧬";
+        color = "bg-gradient-to-r from-emerald-500 to-green-500";
+        break;
+      case "english literature":
+        icon = "📚";
+        color = "bg-gradient-to-r from-indigo-500 to-purple-500";
+        break;
+      case "history":
+        icon = "🏛️";
+        color = "bg-gradient-to-r from-amber-500 to-yellow-500";
+        break;
+      case "computer science":
+        icon = "💻";
+        color = "bg-gradient-to-r from-slate-500 to-gray-500";
+        break;
+      // Add more cases for other subjects if needed
+    }
+
+    return {
+      value: subject.name.toLowerCase().replace(/\s/g, "_"),
+      label: subject.name,
+      icon,
+      color,
+      id: subject.id, // Add the id here
+    };
+  }),
+];
+
 export default function AITutorModern() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
+  const [isLeftPanelOpen, setIsLeftPanelOpen] = useState(false);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
+  const panelGroupRef = useRef<ImperativePanelGroupHandle>(null);
+  const leftPanelRef = useRef<ImperativePanelHandle>(null);
+  const rightPanelRef = useRef<ImperativePanelHandle>(null);
+
+  const toggleLeftPanel = () => {
+    if (leftPanelRef.current) {
+      if (leftPanelRef.current.isCollapsed()) {
+        leftPanelRef.current.expand();
+      } else {
+        leftPanelRef.current.collapse();
+      }
+    }
+  };
+
+  const toggleRightPanel = () => {
+    if (rightPanelRef.current) {
+      if (rightPanelRef.current.isCollapsed()) {
+        rightPanelRef.current.expand();
+      } else {
+        rightPanelRef.current.collapse();
+      }
+    }
+  };
+
 
   // Core states
   const [selectedSubject, setSelectedSubject] = useState<string>("all");
-  const [tutorMode, setTutorMode] = useState<
-    "basic" | "educational" | "enhanced"
-  >("enhanced");
-  const [selectedModel, setSelectedModel] = useState<string>(
-    "google/gemma-3-12b-it"
-  );
+  const [availableUnits, setAvailableUnits] = useState<
+    { id: number; name: string }[]
+  >([]);
 
   // Chat states
   const [currentMessage, setCurrentMessage] = useState("");
@@ -91,21 +179,77 @@ export default function AITutorModern() {
   const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
+  const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false);
 
   // Voice states - auto-enabled with UK English defaults
   const [selectedAccent, setSelectedAccent] = useState<"us" | "uk" | "indian">
     ("uk");
-  const [selectedVoice, setSelectedVoice] = useState<string>("fable");
   const [speechSpeed, setSpeechSpeed] = useState(0.7);
-  const [humanization, setHumanization] = useState(1);
-  const [voiceBreathing, setVoiceBreathing] = useState(true);
-  const [voicePauses, setVoicePauses] = useState(true);
-  const [voiceEmphasis, setVoiceEmphasis] = useState(true);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [selectedContext, setSelectedContext] = useState("");
   // const [selectedSubject, setSelectedSubject] = useState("all");
   const [selectedUnit, setSelectedUnit] = useState("");
+  const [unitSummary, setUnitSummary] = useState(""); // New state for unit summary
+
+  // Effect to update available units based on selected subject
+  useEffect(() => {
+    if (selectedSubject && selectedSubject !== "all") {
+      const subjectId = formattedSubjects.find(s => s.value === selectedSubject)?.id;
+      if (subjectId) {
+        setAvailableUnits(mockUnits[subjectId.toString()] || []);
+      } else {
+        setAvailableUnits([]);
+      }
+    } else {
+      setAvailableUnits([]);
+    }
+    setSelectedUnit(""); // Reset unit when subject changes
+  }, [selectedSubject]);
+  // Effect to generate unit summary when selectedUnit changes
+  useEffect(() => {
+    if (selectedUnit && selectedSubject && selectedSubject !== "all") {
+      setIsLoading(true);
+      const summaryMessage: ChatMessage = {
+        id: Date.now().toString(),
+        type: "assistant",
+        content: `Generating summary for ${selectedUnit} in ${formattedSubjects.find(s => s.value === selectedSubject)?.label}...`,
+        timestamp: new Date(),
+        subject: selectedSubject,
+        unit: selectedUnit,
+      };
+      setMessages((prev) => [...prev, summaryMessage]);
+
+      setTimeout(() => {
+        const generatedSummary = `Here's a concise summary of **${selectedUnit}** in **${formattedSubjects.find(s => s.value === selectedSubject)?.label}**: This unit covers the fundamental concepts of ${selectedUnit}, including its key definitions, historical context, and practical applications. It aims to provide a solid understanding of ${selectedUnit}'s core principles and how they relate to the broader subject of ${formattedSubjects.find(s => s.value === selectedSubject)?.label}. Key takeaways include [insert a few key concepts related to unit and subject].`;
+
+        setUnitSummary(generatedSummary); // Store the summary
+        const assistantSummaryMessage: ChatMessage = {
+            id: (Date.now() + 1).toString(),
+            type: "assistant",
+            content: generatedSummary,
+            timestamp: new Date(),
+            subject: selectedSubject,
+            unit: selectedUnit,
+        };
+        setMessages((prev) => [...prev.filter(msg => msg.id !== summaryMessage.id), assistantSummaryMessage]); // Replace loading message
+        setIsLoading(false);
+      }, 1500); // Simulate network delay
+    }
+  }, [selectedUnit, selectedSubject, formattedSubjects]);
+
+  // Effect to store selected subject in localStorage
+  useEffect(() => {
+    localStorage.setItem("ai-tutor-selected-subject", selectedSubject);
+  }, [selectedSubject]);
+
+  // Effect to store selected unit in localStorage
+  useEffect(() => {
+    localStorage.setItem("ai-tutor-selected-unit", selectedUnit);
+  }, [selectedUnit]);
+
+
 // Independent Sidebar Chat States
 const [isAISidebarOpen, setIsAISidebarOpen] = useState(false);
 const [sidebarQuestion, setSidebarQuestion] = useState("");
@@ -121,10 +265,6 @@ useEffect(() => {
   const [highlightedText, setHighlightedText] = useState("");
   const [currentWordIndex, setCurrentWordIndex] = useState(-1);
   const [responseWords, setResponseWords] = useState<string[]>([]);
-  const [leftCollapsed, setLeftCollapsed] = useState(false);
-  const [rightCollapsed, setRightCollapsed] = useState(false);
-const [quickQuestion, setQuickQuestion] = useState("");
-const [isQuickAskOpen, setIsQuickAskOpen] = useState(false);
 
 const captureSelection = () => {
   const text = window.getSelection()?.toString();
@@ -167,7 +307,6 @@ const sendSidebarMessage = async () => {
         message: query,
         subject: selectedSubject !== "all" ? selectedSubject : "general",
         mode: "educational", // Fixed mode for sidebar helper
-        modelId: selectedModel,
       }),
     });
 
@@ -187,21 +326,6 @@ const sendSidebarMessage = async () => {
     setIsSidebarLoading(false);
   }
 };
-
-const handleQuickAsk = async () => {
-  if (!quickQuestion.trim()) return;
-  
-  // Set the question to the main chat and send it
-  setCurrentMessage(quickQuestion);
-  setIsQuickAskOpen(false);
-  setQuickQuestion("");
-  
-  // We use a small timeout to ensure the state update for setCurrentMessage 
-  // is processed before triggering the send logic
-  setTimeout(() => {
-    sendMessage();
-  }, 100);
-};
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -209,74 +333,7 @@ const handleQuickAsk = async () => {
   const highlightTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Subject options with modern icons
-  const subjects = [
-    {
-      value: "all",
-      label: "All Subjects",
-      icon: "🎯",
-      color: "bg-gradient-to-r from-purple-500 to-pink-500",
-    },
-    {
-      value: "mathematics",
-      label: "Mathematics",
-      icon: "🔢",
-      color: "bg-gradient-to-r from-blue-500 to-cyan-500",
-    },
-    {
-      value: "physics",
-      label: "Physics",
-      icon: "⚛️",
-      color: "bg-gradient-to-r from-green-500 to-teal-500",
-    },
-    {
-      value: "chemistry",
-      label: "Chemistry",
-      icon: "🧪",
-      color: "bg-gradient-to-r from-red-500 to-orange-500",
-    },
-    {
-      value: "biology",
-      label: "Biology",
-      icon: "🧬",
-      color: "bg-gradient-to-r from-emerald-500 to-green-500",
-    },
-    {
-      value: "english",
-      label: "English",
-      icon: "📚",
-      color: "bg-gradient-to-r from-indigo-500 to-purple-500",
-    },
-    {
-      value: "history",
-      label: "History",
-      icon: "🏛️",
-      color: "bg-gradient-to-r from-amber-500 to-yellow-500",
-    },
-    {
-      value: "geography",
-      label: "Geography",
-      icon: "🌍",
-      color: "bg-gradient-to-r from-teal-500 to-cyan-500",
-    },
-    {
-      value: "computer_science",
-      label: "Computer Science",
-      icon: "💻",
-      color: "bg-gradient-to-r from-slate-500 to-gray-500",
-    },
-  ];
-
-  // Voice models with enhanced descriptions
-  const voiceModels = [
-    { value: "fable", label: "Fable", description: "Professional & Clear" },
-    {
-      value: "alloy",
-      label: "Alloy",
-      description: "Conversational & Friendly",
-    },
-    { value: "echo", label: "Echo", description: "Warm & Engaging" },
-    { value: "nova", label: "Nova", description: "Crisp & Modern" },
-  ];
+  const subjects = formattedSubjects;
 
   // Auto-enable audio on component mount
   useEffect(() => {
@@ -468,7 +525,6 @@ const handleQuickAsk = async () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text: textStr.slice(0, 3000),
-          voice: selectedVoice,
           speed: speechSpeed,
           format: "mp3",
         }),
@@ -640,8 +696,7 @@ const handleQuickAsk = async () => {
         body: JSON.stringify({
           message: currentMessage,
           subject: selectedSubject !== "all" ? selectedSubject : undefined,
-          mode: tutorMode,
-          modelId: selectedModel,
+          unit: selectedUnit || undefined, // Include selectedUnit in the payload
           context: messages
             .slice(-5)
             .map((m) => `${m.type}: ${m.content}`)
@@ -661,7 +716,6 @@ const handleQuickAsk = async () => {
         content: data.response,
         timestamp: new Date(),
         subject: selectedSubject !== "all" ? selectedSubject : undefined,
-        model: selectedModel,
       };
 
       setMessages((prev) => {
@@ -734,344 +788,169 @@ const handleQuickAsk = async () => {
 
   const selectedSubjectData = subjects.find((s) => s.value === selectedSubject);
 
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 p-2 sm:p-4">
-      {/* Background decoration - hidden on mobile for performance */}
-      <div className="hidden sm:block fixed inset-0 pointer-events-none overflow-hidden opacity-30">
-        <div className="absolute top-20 left-20 w-32 h-32 bg-blue-200 dark:bg-blue-800 rounded-full blur-3xl"></div>
-        <div className="absolute top-40 right-40 w-24 h-24 bg-purple-200 dark:bg-purple-800 rounded-full blur-2xl"></div>
-        <div className="absolute bottom-20 left-40 w-28 h-28 bg-green-200 dark:bg-green-800 rounded-full blur-3xl"></div>
-      </div>
-
-      <div className="max-w-7xl mx-auto relative">
-        {/* Navigation Header - Responsive */}
-        <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <Link href="/">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">Back to Dashboard</span>
-              <span className="sm:hidden">Back</span>
-            </Button>
-          </Link>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white order-first sm:order-none">
-            AI Tutor
-          </h1>
-          <div className="flex gap-2">
-            <Link href="/voice-study">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-1.5"
-              >
-                <VoiceIcon className="h-4 w-4" />
-                <span className="hidden md:inline">Voice Study</span>
-              </Button>
-            </Link>
-            {/* --- NEW ASK AI BUTTON --- */}
- <Button
-  onClick={() => setIsAISidebarOpen(true)}
-  variant="default"
-  size="sm"
-  className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white"
->
-  <Wand2 className="h-4 w-4" />
-  <span className="hidden md:inline">Ask AI</span>
-</Button>
-<Button
-  onClick={captureSelection}
-  variant="outline"
-  size="sm"
-  className="flex items-center gap-1.5 border-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/20"
->
-  <Brain className="h-4 w-4 text-blue-500" />
-  <span className="hidden md:inline">Explain Selection</span>
-</Button>
-  {/* ------------------------- */}
-            <Link href="/exams">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-1.5"
-              >
-                <GraduationCap className="h-4 w-4" />
-                <span className="hidden md:inline">Practice</span>
-              </Button>
-            </Link>
+  const leftPanelContent = (
+    <Card className="h-full flex flex-col">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>{!isLeftPanelCollapsed && "Learning Panel"}</CardTitle>
+        <Button variant="ghost" size="icon" onClick={toggleLeftPanel} className="hidden sm:flex">
+          <Menu className="h-4 w-4" />
+        </Button>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {isLeftPanelCollapsed && !isMobile ? (
+          <div className="flex flex-col items-center gap-4">
+            <BookOpen className="h-6 w-6" />
+            <ClipboardList className="h-6 w-6" />
+            <Database className="h-6 w-6" />
+            <History className="h-6 w-6" />
           </div>
-        </div>
-
-        {/* Compact Header with Chat History & Settings - Responsive */}
-
-        {/* Main Chat Interface - Responsive */}
-        <div
-          className={`
-    grid gap-4 sm:gap-6 transition-all duration-300
-    grid-cols-1
-    xl:grid-cols-12
-  `}
-        >
-          <div
-            className={`
-    space-y-4 transition-all duration-300
-    ${leftCollapsed ? "xl:col-span-1" : "xl:col-span-3"}
-  `}
-          >
-            {/* Subject Selection - Compact */}
-            <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 h-[600px] flex flex-col">
-              {/* Header */}
-              <CardHeader className="pb-3 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <BookOpen className="h-4 w-4" />
-                  {!leftCollapsed && "Learning Panel"}
-                </CardTitle>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setLeftCollapsed(!leftCollapsed)}
-                  className="h-7 w-7"
-                >
-                  ☰
-                </Button>
-              </CardHeader>
-
-              {/* Content */}
-              {!leftCollapsed ? (
-                <CardContent className="flex-1 overflow-hidden p-3 pt-0 space-y-4">
-                  {/* SUBJECT (Multi-select style display) */}
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium text-muted-foreground">
-                      Subject
-                    </label>
-
-                    <Select
-                      value={selectedSubject}
-                      onValueChange={setSelectedSubject}
-                    >
-                      <SelectTrigger className="min-h-9 text-xs flex flex-wrap gap-1">
-                        {selectedSubjectData && selectedSubject !== "all" ? (
-                          <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 rounded text-blue-700 dark:text-blue-300 text-xs">
-                            {selectedSubjectData.icon} {selectedSubjectData.label}
-                          </span>
-                        ) : (
-                          <SelectValue placeholder="Select subjects" />
-                        )}
-                      </SelectTrigger>
-
-                      <SelectContent>
-                        {subjects.map((subject) => (
-                          <SelectItem key={subject.value} value={subject.value}>
-                            <div className="flex items-center gap-2">
-                              <span>{subject.icon}</span>
-                              {subject.label}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* UNIT DROPDOWN */}
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium text-muted-foreground">
-                      Unit
-                    </label>
-
-                    <Select
-                      value={selectedUnit}
-                      onValueChange={setSelectedUnit}
-                    >
-                      <SelectTrigger className="h-9 text-xs">
-                        <SelectValue placeholder="Select unit" />
-                      </SelectTrigger>
-
-                      <SelectContent>
-                        {["Unit 1", "Unit 2", "Unit 3"].map((unit) => (
-                          <SelectItem key={unit} value={unit}>
-                            {unit}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* DIVIDER */}
-                  <div className="h-px bg-gray-200 dark:bg-slate-700" />
-
-                  {/* HISTORY (Scrollable) */}
-                  <div className="flex-1 overflow-hidden">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-medium text-muted-foreground">
-                        History
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={startNewChat}
-                        className="h-6 px-2 text-xs"
-                      >
-                        New
-                      </Button>
-                    </div>
-
-                    <ScrollArea className="h-full pr-1">
-                      <div className="space-y-1">
-                        {chatHistory.map((chat) => (
-                          <div
-                            key={chat.id}
-                            onClick={() => loadChat(chat)}
-                            className={`p-2 rounded cursor-pointer transition-colors text-xs ${currentChatId === chat.id
-                              ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
-                              : "hover:bg-gray-50 dark:hover:bg-slate-700"
-                            }`}
-                          >
-                            <div className="truncate font-medium">
-                              {chat.title}
-                            </div>
-                            <div className="text-muted-foreground">
-                              {chat.messages.length} msgs
-                            </div>
-                          </div>
-                        ))}
-
-                        {chatHistory.length === 0 && (
-                          <p className="text-xs text-center text-muted-foreground py-4">
-                            No chats yet
-                          </p>
-                        )}
-                      </div>
-                    </ScrollArea>
-                  </div>
-                </CardContent>
-              ) : (
-                <CardContent className="flex flex-col items-center gap-4 py-6">
-                  {[{"icon": "📘", "label": "Subject"}, {"icon": "🧩", "label": "Unit"}, {"icon": "🕘", "label": "History"}].map((item) => (
-                    <div
-                      key={item.label}
-                      className="group relative cursor-pointer"
-                    >
-                      <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-slate-700">
-                        {item.icon}
-                      </div>
-
-                      {/* Tooltip */}
-                      <span
-                        className="
-          absolute left-full ml-3 top-1/2 -translate-y-1/2
-          bg-black text-white text-xs px-2 py-1 rounded
-          opacity-0 group-hover:opacity-100 transition
-          whitespace-nowrap
-        "
-                      >
-                        {item.label}
-                      </span>
-                    </div>
-                  ))}
-                </CardContent>
-              )}
-            </Card>
-
-            {/* AI Mode - Compact */}
-            {/* <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <Brain className="h-4 w-4" />
-                AI Mode
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-0">
-              <Select value={tutorMode} onValueChange={(value: any) => setTutorMode(value)}>
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue />
+        ) : (
+          <>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground">
+                Subject
+              </label>
+              <Select
+                value={selectedSubject}
+                onValueChange={setSelectedSubject}
+              >
+                <SelectTrigger className="min-h-9 text-xs flex flex-wrap gap-1">
+                  {selectedSubjectData && selectedSubject !== "all" ? (
+                    <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 rounded text-blue-700 dark:text-blue-300 text-xs">
+                      {selectedSubjectData.icon} {selectedSubjectData.label}
+                    </span>
+                  ) : (
+                    <SelectValue placeholder="Select subjects" />
+                  )}
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="basic">Basic</SelectItem>
-                  <SelectItem value="educational">Educational</SelectItem>
-                  <SelectItem value="enhanced">Enhanced</SelectItem>
+                  {subjects.map((subject) => (
+                    <SelectItem key={subject.value} value={subject.value}>
+                      <div className="flex items-center gap-2">
+                        <span>{subject.icon}</span>
+                        {subject.label}
+                      </div>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-              <div className="mt-2 text-xs text-muted-foreground">
-                Voice: UK English, Fable
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground">
+                Unit
+              </label>
+              <Select
+                value={selectedUnit}
+                onValueChange={setSelectedUnit}
+                disabled={selectedSubject === "all" || availableUnits.length === 0}
+              >
+                <SelectTrigger className="h-9 text-xs">
+                  <SelectValue placeholder="Select unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableUnits.map((unit) => (
+                    <SelectItem key={unit.id} value={unit.name}>
+                      {unit.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="h-px bg-gray-200 dark:bg-slate-700" />
+            <div className="flex-1 overflow-hidden">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground">
+                  History
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={startNewChat}
+                  className="h-6 px-2 text-xs"
+                >
+                  New
+                </Button>
               </div>
-            </CardContent>
-          </Card> */}
+              <ScrollArea className="h-full pr-1">
+                <div className="space-y-1">
+                  {chatHistory.map((chat) => (
+                    <div
+                      key={chat.id}
+                      onClick={() => {
+                        loadChat(chat);
+                        if (isMobile) setIsLeftPanelOpen(false);
+                      }}
+                      className={`p-2 rounded cursor-pointer transition-colors text-xs ${currentChatId === chat.id
+                          ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
+                          : "hover:bg-gray-50 dark:hover:bg-slate-700"
+                        }`}
+                    >
+                      <div className="truncate font-medium">
+                        {chat.title}
+                      </div>
+                      <div className="text-muted-foreground">
+                        {chat.messages.length} msgs
+                      </div>
+                    </div>
+                  ))}
+                  {chatHistory.length === 0 && (
+                    <p className="text-xs text-center text-muted-foreground py-4">
+                      No chats yet
+                    </p>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  const rightPanelContent = (
+    <Card className="h-full flex flex-col">
+      <CardHeader className="pb-3 flex flex-row items-center justify-between">
+        <CardTitle className="text-sm font-semibold flex items-center gap-2">
+          {!isRightPanelCollapsed && "Studio"}
+        </CardTitle>
+        <Button variant="ghost" size="icon" onClick={toggleRightPanel} className="hidden sm:flex">
+          <Menu className="h-4 w-4" />
+        </Button>
+      </CardHeader>
+      <CardContent className="flex-1 flex items-center justify-center p-4">
+        {isRightPanelCollapsed && !isMobile ? (
+          <div className="flex flex-col items-center gap-4">
+            <ClipboardList className="h-6 w-6 text-blue-600" />
+            <Database className="h-6 w-6 text-purple-600" />
+            <BookCheck className="h-6 w-6 text-green-600" />
+            <HelpCircle className="h-6 w-6 text-orange-600" />
           </div>
-
-          {/* Voice Settings - Compact */}
-          {/* <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <Volume2 className="h-4 w-4" />
-                Voice Settings
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-0 space-y-3">
-              <div className="text-xs p-2 bg-green-50 dark:bg-green-900/20 rounded text-green-700 dark:text-green-300 text-center">
-                Auto-enabled: UK English, Fable, 0.7x speed
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span>Speed: {speechSpeed.toFixed(1)}x</span>
-                  <span>Quality: {Math.round(humanization * 100)}%</span>
-                </div>
-                <Slider
-                  value={[speechSpeed]}
-                  onValueChange={(value) => setSpeechSpeed(value[0])}
-                  min={0.5}
-                  max={2.0}
-                  step={0.1}
-                  className="w-full h-1"
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-1 text-xs">
-                <div className="flex items-center gap-1">
-                  <Switch 
-                    checked={voiceBreathing} 
-                    onCheckedChange={setVoiceBreathing}
-                    className="scale-75"
-                  />
-                  <span>Breath</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Switch 
-                    checked={voicePauses} 
-                    onCheckedChange={setVoicePauses}
-                    className="scale-75"
-                  />
-                  <span>Pause</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Switch 
-                    checked={voiceEmphasis} 
-                    onCheckedChange={setVoiceEmphasis}
-                    className="scale-75"
-                  />
-                  <span>Tone</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card> */}
-
-          {/* Main Chat Area */}
-      {/* Main Chat Area */}
-<div
-  className={`
-    transition-all duration-300
-    ${leftCollapsed && rightCollapsed 
-      ? "xl:col-span-10" // Both collapsed: 1 + 10 + 1 = 12
-      : leftCollapsed || rightCollapsed
-        ? "xl:col-span-8"  // One collapsed: 1 + 8 + 3 = 12 (or 3 + 8 + 1)
-        : "xl:col-span-6"  // None collapsed: 3 + 6 + 3 = 12
-    }
-  `}
->
-            <Card className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 h-[600px] flex flex-col">
+        ) : (
+          <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
+            <Button variant="outline" className="h-20 flex flex-col gap-2 text-xs" onClick={() => { setLocation('/studio/quiz'); if (isMobile) setIsRightPanelOpen(false); }}>
+              <ClipboardList className="h-5 w-5 text-blue-600" />
+              Quiz
+            </Button>
+            <Button variant="outline" className="h-20 flex flex-col gap-2 text-xs" onClick={() => { setLocation('/studio/quiz-bank'); if (isMobile) setIsRightPanelOpen(false); }}>
+              <Database className="h-5 w-5 text-purple-600" />
+              Quiz Bank
+            </Button>
+            <Button variant="outline" className="h-20 flex flex-col gap-2 text-xs" onClick={() => { setLocation('/preparation-exam'); if (isMobile) setIsRightPanelOpen(false); }}>
+              <BookCheck className="h-5 w-5 text-green-600" />
+              Test Prep
+            </Button>
+            <Button variant="outline" className="h-20 flex flex-col gap-2 text-xs" onClick={() => { setLocation('/studio/qa'); if (isMobile) setIsRightPanelOpen(false); }}>
+              <HelpCircle className="h-5 w-5 text-orange-600" />
+              Q&A
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+  
+  const mainPanelContent = (
+      <Card className="h-full flex flex-col">
               <CardHeader className="pb-4 border-b border-gray-200 dark:border-slate-700">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg flex items-center gap-3">
@@ -1269,216 +1148,133 @@ const handleQuickAsk = async () => {
                 </div>
               </div>
             </Card>
-          </div>
-    <div className={`transition-all duration-300 ${rightCollapsed ? "xl:col-span-1" : "xl:col-span-3"} flex justify-end`}>
-  <Card
-    className={`
-      h-[600px] flex flex-col
-      transition-all duration-300 ease-in-out
-      ${rightCollapsed ? "w-16" : "w-full"}
-    `}
-  >
-  
-    {/* Header */}
-                  <CardHeader className="pb-3 flex flex-row items-center justify-between">
+  );
 
-      <CardTitle className="text-sm font-semibold flex items-center gap-2">
-        <History className="h-4 w-4" />
-        {!rightCollapsed && "Studio"}
-      </CardTitle>
+  return (
+    <div className="h-screen bg-gray-50 dark:bg-slate-900 p-2 sm:p-4 flex flex-col">
+      {/* Background decoration - hidden on mobile for performance */}
+      <div className="hidden sm:block fixed inset-0 pointer-events-none overflow-hidden opacity-30">
+        <div className="absolute top-20 left-20 w-32 h-32 bg-blue-200 dark:bg-blue-800 rounded-full blur-3xl"></div>
+        <div className="absolute top-40 right-40 w-24 h-24 bg-purple-200 dark:bg-purple-800 rounded-full blur-2xl"></div>
+        <div className="absolute bottom-20 left-40 w-28 h-28 bg-green-200 dark:bg-green-800 rounded-full blur-3xl"></div>
+      </div>
 
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setRightCollapsed(!rightCollapsed)}
-        className="h-7 w-7"
-      >
-        ☰
-      </Button>
-    </CardHeader>
-
-    {/* Content */}
-    <CardContent className="flex-1 flex items-center justify-center p-4">
-      {!rightCollapsed ? (
-        <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
-          <Button variant="outline" className="h-20 flex flex-col gap-2 text-xs" onClick={() => setLocation('/studio/quiz')}>
-            <ClipboardList className="h-5 w-5 text-blue-600" />
-            Quiz
-          </Button>
-          <Button variant="outline" className="h-20 flex flex-col gap-2 text-xs" onClick={() => setLocation('/studio/quiz-bank')}>
-            <Database className="h-5 w-5 text-purple-600" />
-            Quiz Bank
-          </Button>
-          <Button variant="outline" className="h-20 flex flex-col gap-2 text-xs" onClick={() => setLocation('/studio/test-prep')}>
-            <BookCheck className="h-5 w-5 text-green-600" />
-            Test Prep
-          </Button>
-          <Button variant="outline" className="h-20 flex flex-col gap-2 text-xs" onClick={() => setLocation('/studio/qa')}>
-            <HelpCircle className="h-5 w-5 text-orange-600" />
-            Q&A
-          </Button>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-4">
-          {[ClipboardList, Database, BookCheck, HelpCircle].map((Icon, i) => (
-            <div key={i} className="relative group">
-              <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-slate-700 flex items-center justify-center">
-                <Icon className="h-4 w-4" />
-              </div>
-
-              <span
-                className="
-                  absolute right-full mr-3
-                  bg-black text-white text-xs px-2 py-1 rounded
-                  opacity-0 group-hover:opacity-100 transition
-                  whitespace-nowrap
-                "
+      <div className="max-w-7xl mx-auto relative w-full flex flex-col flex-1">
+        {/* Navigation Header - Responsive */}
+        <div className="mb-4 sm:mb-6 flex flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Link href="/dashboard">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
               >
-                {["Quiz", "Quiz Bank", "Test Prep", "Q&A"][i]}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-    </CardContent>
-  </Card>
-</div>
-
-
-            
-        </div>
-      </div>
-      {/* SLIDING AI SIDEBAR */}
-{/* INDEPENDENT SIDEBAR CHATBOT */}
-<div className={`fixed inset-0 z-50 transition-all duration-300 ${isAISidebarOpen ? "visible" : "invisible"}`}>
-  {/* Backdrop */}
-  <div 
-    className={`absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${isAISidebarOpen ? "opacity-100" : "opacity-0"}`}
-    onClick={() => setIsAISidebarOpen(false)}
-  />
-
-  {/* Sidebar Panel */}
-  <div className={`absolute right-0 top-0 h-full w-full max-w-md bg-white dark:bg-slate-900 shadow-2xl transform transition-transform duration-500 ease-out border-l border-gray-200 dark:border-slate-800 ${isAISidebarOpen ? "translate-x-0" : "translate-x-full"}`}>
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="p-4 border-b dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900 z-10">
-        <div className="flex items-center gap-2">
-          <div className="p-2 bg-blue-600 rounded-lg">
-            <Bot className="h-5 w-5 text-white" />
+                <ArrowLeft className="h-4 w-4" />
+                <span className="hidden sm:inline">Back</span>
+              </Button>
+            </Link>
+            <Button variant="outline" size="icon" className="sm:hidden" onClick={() => setIsLeftPanelOpen(true)}>
+              <Menu className="h-4 w-4" />
+            </Button>
           </div>
-          <div>
-            <h2 className="font-bold text-sm">Quick AI Helper</h2>
-            <div className="flex items-center gap-1">
-              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-              <span className="text-[10px] text-muted-foreground">Ready to help</span>
-            </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+            AI Tutor
+          </h1>
+          <div className="flex items-center gap-2">
+            <Link href="/voice-study">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1.5"
+              >
+                <Speech className="h-4 w-4" />
+                <span className="hidden md:inline">Voice Study</span>
+              </Button>
+            </Link>
+            <Button
+              onClick={() => setIsAISidebarOpen(true)}
+              variant="default"
+              size="sm"
+              className="hidden sm:flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white"
+            >
+              <Wand2 className="h-4 w-4" />
+              <span className="hidden md:inline">Ask AI</span>
+            </Button>
+            <Button
+              onClick={captureSelection}
+              variant="outline"
+              size="sm"
+              className="hidden sm:flex items-center gap-1.5 border-blue-200 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+            >
+              <Brain className="h-4 w-4 text-blue-500" />
+              <span className="hidden md:inline">Explain</span>
+            </Button>
+            <Link href="/exams">
+              <Button
+                variant="outline"
+                size="sm"
+                className="hidden sm:flex items-center gap-1.5"
+              >
+                <GraduationCap className="h-4 w-4" />
+                <span className="hidden md:inline">Practice</span>
+              </Button>
+            </Link>
+            <Button variant="outline" size="icon" className="sm:hidden" onClick={() => setIsRightPanelOpen(true)}>
+              <Menu className="h-4 w-4" />
+            </Button>
           </div>
         </div>
-        <Button variant="ghost" size="icon" onClick={() => setIsAISidebarOpen(false)}>
-           <span className="text-xl">×</span>
-        </Button>
-      </div>
-{/* Context Preview in Sidebar */}
-{selectedContext && (
-  <div className="mx-4 mt-2 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-lg relative">
-    <p className="text-[10px] font-bold text-amber-800 dark:text-amber-400 uppercase">Context Selection:</p>
-    <p className="text-[11px] italic line-clamp-2 opacity-80">"{selectedContext}"</p>
-    <button 
-      onClick={() => setSelectedContext("")}
-      className="absolute top-1 right-1 text-amber-800 dark:text-amber-400 hover:scale-110"
-    >
-      <Trash2 className="h-3 w-3" />
-    </button>
-  </div>
-)}
-      {/* Messages Area */}
-      <ScrollArea className="flex-1 p-4 bg-gray-50/50 dark:bg-slate-950/50">
-        <div className="space-y-4">
-          {sidebarMessages.length === 0 && (
-            <div className="text-center py-10 opacity-60">
-              <Sparkles className="h-8 w-8 mx-auto mb-2 text-blue-500" />
-              <p className="text-xs">Ask me anything! I can find answers while you stay on your current lesson.</p>
-            </div>
-          )}
-         {sidebarMessages.map((msg) => (
-  <div key={msg.id} className={`flex flex-col ${msg.type === "user" ? "items-end" : "items-start"}`}>
-    <div className={`max-w-[85%] p-3 rounded-2xl text-xs relative group ${msg.type === "user" 
-      ? "bg-blue-600 text-white rounded-tr-none" 
-      : "bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-tl-none shadow-sm"}`}>
-      {msg.content}
-      
-      {/* EXPORT BUTTON - Only shows for Assistant and on Hover */}
-      {msg.type === "assistant" && (
-        <button
-          onClick={() => {
-            const exportedMsg: ChatMessage = {
-              ...msg,
-              id: Date.now().toString(),
-              timestamp: new Date(),
-            };
-            setMessages((prev) => [...prev, exportedMsg]);
-            toast({
-              title: "Exported to Chat",
-              description: "This answer has been added to your main study session.",
-            });
-          }}
-          className="absolute -right-8 top-0 p-1.5 bg-white dark:bg-slate-800 rounded-full border border-gray-200 dark:border-slate-700 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:text-blue-600"
-          title="Add to main chat"
-        >
-          <Zap className="h-3 w-3" />
-        </button>
-      )}
-    </div>
-    <span className="text-[9px] opacity-40 mt-1 px-1">
-      {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-    </span>
-  </div>
-))}
-          {isSidebarLoading && (
-            <div className="flex justify-start">
-              <div className="bg-white dark:bg-slate-800 p-3 rounded-2xl rounded-tl-none border border-gray-200 dark:border-slate-700">
-                <div className="flex gap-1">
-                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce"></span>
-                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce [animation-delay:0.2s]"></span>
-                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce [animation-delay:0.4s]"></span>
-                </div>
-              </div>
-            </div>
-          )}
-          <div ref={sidebarEndRef} />
-        </div>
-      </ScrollArea>
-
-      {/* Input Area */}
-      <div className="p-4 border-t dark:border-slate-800 bg-white dark:bg-slate-900">
-        <div className="relative flex items-end gap-2">
-          <Textarea 
-            placeholder="Search for an answer..."
-            value={sidebarQuestion}
-            onChange={(e) => setSidebarQuestion(e.target.value)}
-            className="min-h-[45px] max-h-[120px] resize-none text-xs rounded-xl"
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                sendSidebarMessage();
-              }
-            }}
-          />
-          <Button 
-            size="icon" 
-            className="h-10 w-10 rounded-xl bg-blue-600 hover:bg-blue-700 shrink-0"
-            onClick={sendSidebarMessage}
-            disabled={isSidebarLoading || !sidebarQuestion.trim()}
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
+        
+        {isMobile ? (
+          <div className="flex-1 flex flex-col min-h-0">
+            {mainPanelContent}
+            <Sheet open={isLeftPanelOpen} onOpenChange={setIsLeftPanelOpen}>
+              <SheetContent side="left" className="p-0 w-full max-w-md">
+                {leftPanelContent}
+              </SheetContent>
+            </Sheet>
+            <Sheet open={isRightPanelOpen} onOpenChange={setIsRightPanelOpen}>
+              <SheetContent side="right" className="p-0 w-full max-w-md">
+                {rightPanelContent}
+              </SheetContent>
+            </Sheet>
+          </div>
+        ) : (
+          <ResizablePanelGroup direction="horizontal" className="flex-1" ref={panelGroupRef}>
+            <ResizablePanel
+              id="left-panel"
+              ref={leftPanelRef}
+              defaultSize={20}
+              collapsedSize={4}
+              collapsible
+              minSize={15}
+              onCollapse={() => setIsLeftPanelCollapsed(true)}
+              onExpand={() => setIsLeftPanelCollapsed(false)}
+              className={`transition-all duration-300`}
+            >
+              {leftPanelContent}
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={60} minSize={30}>
+              {mainPanelContent}
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel
+              id="right-panel"
+              ref={rightPanelRef}
+              defaultSize={20}
+              collapsedSize={4}
+              collapsible
+              minSize={15}
+              onCollapse={() => setIsRightPanelCollapsed(true)}
+              onExpand={() => setIsRightPanelCollapsed(false)}
+              className={`transition-all duration-300`}
+            >
+              {rightPanelContent}
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        )}
       </div>
     </div>
-  </div>
-</div>
-    </div>
-
-    
   );
 }

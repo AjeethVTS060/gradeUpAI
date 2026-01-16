@@ -82,16 +82,18 @@ export default function Sidebar({ currentRole }: SidebarProps) {
       // ],
     },
     { icon: MessageSquare, label: "Community", href: "/community" },
-    { icon: Trophy, label: "Achievements", href: "/progress" },
+    { icon: MessageSquare, label: "Community New", href: "/communityNew" },
+
+    { icon: Trophy, label: "Achievements", href: "/achievements" },
     { icon: Users, label: "Seminar Tool", href: "/seminar-tool" },
     { icon: MessagesSquare, label: "Debate Tool", href: "/debate-tool" },
     {
       icon: Home,
       label: "Exam Windows",
-      href: "/studio/quiz?questions=20&time=30",
+      href: "/preparation-exam",
       children: [
-        { label: "Prep", href: "/studio/quiz?questions=10&time=15" },
-        { label: "Main Exam", href: "/studio/quiz?questions=20&time=30" },
+        { label: "Prep", href: "/preparation-exam" },
+        { label: "Main Exam", href: "/main-exam" },
       ],
     },
   ];
